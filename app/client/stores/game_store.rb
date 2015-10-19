@@ -20,7 +20,9 @@ module Stores
     end
 
     def on_word_click(word)
-      chosen_word = @game.choose_word(word.value)
+      return unless chosen_word = @game.choose_word(word.value)
+      # This is a hack to get react rerendering to work.
+      @game = Game.from_data(@game.to_data)
       publish(self, :update, nil)
       Handlers::CONNECTION.send(:game, :move, chosen_word.to_data)
     end

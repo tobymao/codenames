@@ -3,11 +3,6 @@ module Handlers
     API_URL = "ws://#{`window.location.hostname`}:8080/api"
 
     def initialize
-      @handlers = Hash.new { |h, k| h[k] = [] }
-      open_socket
-    end
-
-    def open_socket
       @socket = Browser::Socket.new(API_URL) do |ws|
         ws.on(:open) { |e| on_open(e) }
         ws.on(:message) { |e| on_message(e) }

@@ -30,16 +30,7 @@ module Components
 
     def render
       return unless grid = params[:grid]
-      puts "render"
-
-      styles = {
-        word: {
-          display: 'inline-block',
-          color: 'blue',
-          margin: '5px',
-        }
-      }
-
+     
       div class_name: "grid" do
         grid.map do |row|
           div {

@@ -4,7 +4,10 @@ module Handlers
 
     def initialize
       @handlers = Hash.new { |h, k| h[k] = [] }
+      open_socket
+    end
 
+    def open_socket
       @socket = Browser::Socket.new(API_URL) do |ws|
         ws.on(:open) { |e| on_open(e) }
         ws.on(:message) { |e| on_message(e) }
@@ -20,12 +23,13 @@ module Handlers
 
     def on_message(e)
       puts "Received message #{e.data}"
-      obj = JSON.parse(e.data)
-      DefaultNotifier.publish(self, obj[:kind], e.data)
+      message = JSON.parse(e.data)
+      NOTIFIER.publish(self, message[:kind], message)
     end
 
     def on_close(e)
       puts "Websocket closed"
+      # TODO: do a retry
     end
 
     def on_error(e)
@@ -34,9 +38,11 @@ module Handlers
     end
 
     def send(kind, action, data)
-      msg = { kind: kind, action: action, data: data }.to_json
-      puts "Sending to server #{msg}"
-      @socket << msg
+      message = { kind: kind, action: action, data: data }.to_json
+      puts "Sending to server #{message}"
+      @socket << message
     end
   end
+
+  CONNECTION = Connection.new
 end

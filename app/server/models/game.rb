@@ -1,6 +1,6 @@
 module Models
   class Game
-    WORDS = %w(Acne,Acre,Addendum,Advertise,Aircraft,Aisle,Alligator,Alphabetize,America,Ankle,Apathy,Applause,Applesauce,Application,Archaeologist,Aristocrat,Arm,Armada,Asleep,Astronaut,Athlete,Atlantis,Aunt,Avocado).freeze
+    WORDS = %w(Acne Acre Addendum Advertise Aircraft Aisle Alligator Alphabetize America Ankle Apathy Applause Applesauce Application Archaeologist Aristocrat Arm Armada Asleep Astronaut Athlete Atlantis Aunt Avocado).freeze
 
     attr_reader :id, :current, :words, :winner, :team_a, :team_b
     attr_accessor :team_a, :team_b
@@ -16,6 +16,7 @@ module Models
       @first, @second = Random.rand(2) == 0 ? [:red, :blue] : [:blue, :red]
       @current = @first
       @words = setup_words(@first, @second)
+      puts "*** my words are #{words}"
     end
 
     def give_clue(clue, count)
@@ -57,7 +58,7 @@ module Models
         blue_team: @blue_team,
         clues: @clues,
         current: @current,
-        words: @words,
+        words: @words.map(&:data),
       }
     end
 

@@ -1,12 +1,10 @@
 module Handlers
-  class Notifier
-    def initialize
-      @subscribers = Hash.new { |h, k| h[k] = [] }
-      @events = Hash.new { |h, k| h[k] = [] }
-    end
-
+  module Notifier
     def subscribe(observer, name, method=nil, &block)
       raise "Error: requires either method or block" if !method && !block
+      @subscribers ||= Hash.new { |h, k| h[k] = [] }
+      @events ||= Hash.new { |h, k| h[k] = [] }
+
       @subscribers[observer] << name
       @events[name] << { observer: observer, method: method, block: block }
     end
@@ -20,12 +18,14 @@ module Handlers
       @subscribers.delete(observer).each { |name| remove_events(observer, name) }
     end
 
-    def publish(sender, name, data)
+    def publish(sender, name, message)
+      return if @events.empty?
+
       @events[name].each do |event|
         if method = event[:method]
-          event[:observer].send(method, data)
+          event[:observer].send(method, sender, message)
         else
-          event[:block].call(sender, data)
+          event[:block].call(sender, message)
         end
       end
     end
@@ -36,5 +36,9 @@ module Handlers
     end
   end
 
-  DefaultNotifier = Notifier.new
+  class GenericNotifier
+    include Notifier
+  end
+
+  NOTIFIER = GenericNotifier.new
 end

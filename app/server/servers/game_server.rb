@@ -11,12 +11,12 @@ module Servers
       subscribe(SocketServer::SOCKET_CLOSE, :on_socket_close)
     end
 
-    def handle(uid, msg)
-      case msg['action']
+    def handle(uid, message)
+      case message['action']
       when 'new'
         new_game(uid)
       when 'join'
-        join_game(uid, msg['data']['game_id'])
+        join_game(uid, message['data']['game_id'])
       when 'move'
       else
       end
@@ -28,12 +28,7 @@ module Servers
       @user_game[uid] = game
       @game_users[game.id] << uid
 
-      data = {
-        kind: 'game',
-        data: game.data,
-      }
-
-      Actor[:socket_server].async.send(uid, { kind: 'game', action: 'new', data: data }.to_json)
+      Actor[:socket_server].async.send(uid, { kind: 'game', action: 'new', data: game.data }.to_json)
     end
 
     def join_game(uid, game_id)

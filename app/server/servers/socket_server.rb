@@ -20,43 +20,43 @@ module Servers
     end
 
     def login(socket)
-      msg = JSON.parse(socket.read)
-      msg['user_id']
+      message = JSON.parse(socket.read)
+      message['user_id']
       async.listen(1, socket)
     end
 
     def listen(uid, socket)
-      while msg = JSON.parse(socket.read)
-        receive(uid, msg)
+      while message = JSON.parse(socket.read)
+        receive(uid, message)
       end
     rescue EOFError, IOError
       info "EOF Client disconnected"
       close(uid, socket)
     end
 
-    def receive(uid, msg)
-      case msg['kind']
+    def receive(uid, message)
+      case message['kind']
       when 'game'
-        info "Recived game msg: #{msg}"
-        Actor[:game_server].async.handle(uid, msg)
+        info "Recived game message: #{message}"
+        Actor[:game_server].async.handle(uid, message)
       when 'chat'
         info "Chat Controller"
       else
-        info "Unknown controller #{msg}"
+        info "Unknown controller #{message}"
       end
     end
 
-    def send_all(msg)
-      @socket_uid.values.each { |uid| send(uid, msg) }
+    def send_all(message)
+      @socket_uid.values.each { |uid| send(uid, message) }
     end
 
-    def send(uid, msg)
-      info "Sending msg #{msg}"
+    def send(uid, message)
+      info "Sending message #{message}"
       socket = @uid_socket[uid]
-      socket << msg
+      socket << message
     rescue Reel::SocketError
-      info "Could not send msg. Client disconnected"
-      close(uid, msg)
+      info "Could not send message. Client disconnected"
+      close(uid, message)
     end
 
     def close(uid, socket)

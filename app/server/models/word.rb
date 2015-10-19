@@ -31,5 +31,13 @@ module Models
     def neutral?
       @owner = :neutral
     end
+
+    def data
+      {
+        value: @value,
+        owner: @owner,
+        chosen: @chosen,
+      }
+    end
   end
 end

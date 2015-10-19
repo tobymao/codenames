@@ -10,6 +10,7 @@ require 'opal-browser'
 require 'reactive-ruby'
 
 require_all 'app/server'
+require_all 'app/client/shared'
 
 LIB_INCLUDE = "app/client/include.rb"
 LIB_PATH = "build/lib.js"

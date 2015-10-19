@@ -38,7 +38,9 @@ module Handlers
     end
 
     def send(kind, action, data)
-      message = { kind: kind, action: action, data: data }.to_json
+      message = { kind: kind, action: action, data: data }
+        .delete_if { |_, v| v.nil? }
+        .to_json
       puts "Sending to server #{message}"
       @socket << message
     end

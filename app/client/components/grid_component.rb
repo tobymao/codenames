@@ -4,18 +4,50 @@ module Components
     include Handlers::Notifier
 
     params do
-      requires :game
+      requires :grid
       requires :delegate
     end
 
+    def word_style(word)
+      color =
+        case word.owner
+        when :red
+          'red'
+        when :blue
+          'blue'
+        when :neutral
+          'burlywood'
+        when :assasin
+          'dimgray'
+        end if word.chosen?
+
+      {
+        display: 'inline-block',
+        color: color || 'black',
+        margin: '5px',
+      }
+    end
+
     def render
-      game = params[:game]
-      return if game.empty?
+      return unless grid = params[:grid]
+      puts "render"
+
+      styles = {
+        word: {
+          display: 'inline-block',
+          color: 'blue',
+          margin: '5px',
+        }
+      }
 
       div class_name: "grid" do
-        div { game[:id] }
-        game[:words].map do |word|
-          div { word[:value] }.on(:click) { delegate.on_word_click(word) }
+        grid.map do |row|
+          div {
+            row.map do |word|
+              div(style: word_style(word)) { word.value }
+                .on(:click) { delegate.on_word_click(word) }
+            end
+          }
         end
       end
     end

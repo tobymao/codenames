@@ -23,12 +23,12 @@ module Servers
     end
 
     def new_game(uid)
-      game = Models::Game.new
-      game.team_a << uid
+      game = Game.new(id: SecureRandom.uuid, first: Random.rand(2) == 0 ? :red : :blue)
+      game.team_a[:members] << uid
       @user_game[uid] = game
       @game_users[game.id] << uid
 
-      Actor[:socket_server].async.send(uid, { kind: 'game', action: 'new', data: game.data }.to_json)
+      Actor[:socket_server].async.send(uid, { kind: 'game', action: 'new', data: game.to_data }.to_json)
     end
 
     def join_game(uid, game_id)

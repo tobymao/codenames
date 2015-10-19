@@ -5,17 +5,18 @@ module Components
     include React::Component
     include Handlers::Notifier
 
-    define_state(:game) { {} }
+    define_state(:game) { }
 
     before_mount do
       Stores::GAME_STORE.subscribe(self, :update, :on_update)
     end
 
-
     def render
+      return unless self.game
+
       div class_name: "game" do
         h1 { "Game view" }
-        present GridComponent, game: self.game, delegate: Stores::GAME_STORE
+        present GridComponent, grid: self.game.grid, delegate: Stores::GAME_STORE
       end
     end
 

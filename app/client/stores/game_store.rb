@@ -1,10 +1,11 @@
 require 'handlers/notifier'
+require 'shared/game'
 
 module Stores
   class GameStore
     include Handlers::Notifier
 
-    attr_accessor :game
+    attr_accessor :game_data, :game
 
     def initialize
       Handlers::NOTIFIER.subscribe(self, :game, :on_game_update)
@@ -19,13 +20,14 @@ module Stores
     end
 
     def on_word_click(word)
-      Handlers::CONNECTION.send(:game, :move, word)
-      # do internal update for real time shits
+      chosen_word = @game.choose_word(word.value)
+      publish(self, :update, nil)
+      Handlers::CONNECTION.send(:game, :move, chosen_word.to_data)
     end
 
     private
-    def set_game(new_game)
-      @game = new_game
+    def set_game(game)
+      @game = Game.from_data(game)
       publish(self, :update, nil)
     end
   end

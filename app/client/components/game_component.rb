@@ -1,4 +1,4 @@
-require 'stores/game_store'
+require 'stores/games_store'
 
 module Components
   class GameComponent
@@ -8,20 +8,19 @@ module Components
     define_state(:game) { }
 
     before_mount do
-      Stores::GAME_STORE.subscribe(self, :update, :on_update)
+      Stores::GAMES_STORE.subscribe(self, :update, :on_update)
     end
 
     def render
       return unless self.game
 
       div class_name: "game" do
-        h1 { "Game view" }
-        present GridComponent, grid: self.game.grid, delegate: Stores::GAME_STORE
+        present GridComponent, grid: self.game.grid, delegate: Stores::GAMES_STORE
       end
     end
 
     def on_update(sender, message)
-      self.game = Stores::GAME_STORE.game
+      self.game = Stores::GAMES_STORE.current_game
     end
   end
 end

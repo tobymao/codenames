@@ -30,13 +30,13 @@ module Components
 
     def render
       return unless grid = params[:grid]
-     
+
       div class_name: "grid" do
         grid.map do |row|
           div {
             row.map do |word|
               div(style: word_style(word)) { word.value }
-                .on(:click) { delegate.on_word_click(word) }
+                .on(:click) { delegate.on_word_click(word.value) }
             end
           }
         end

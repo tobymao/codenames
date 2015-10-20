@@ -1,12 +1,11 @@
-require 'handlers/connection'
-
 module Components
   class MainComponent
     include React::Component
 
     def render
-      div class_name: "main" do
-        h1 { "Code Names" }
+      div class_name: 'main' do
+        h1 { 'Code Names' }
+        present LobbyComponent
         present GameComponent
       end
     end

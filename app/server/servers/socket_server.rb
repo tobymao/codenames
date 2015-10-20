@@ -8,37 +8,35 @@ module Servers
     SOCKET_CLOSE = :user_socket_close
 
     def initialize
-      @uid_socket = {}
-      @socket_uid = {}
+      @user_id_socket = {}
+      @socket_user_id = {}
     end
 
     def connect(socket)
-      info "User connected"
-      @uid_socket[1] = socket
-      @socket_uid[socket] = 1
-      async.listen(1, socket)
-    end
-
-    def login(socket)
       message = JSON.parse(socket.read)
-      message['user_id']
-      async.listen(1, socket)
+      user_id = message['user_id']
+      async.listen(user_id, socket)
+      info "User connected #{user_id}"
+
+      @user_id_socket[user_id] = socket
+      @socket_user_id[socket] = user_id
+      async.listen(user_id, socket)
     end
 
-    def listen(uid, socket)
+    def listen(user_id, socket)
       while message = JSON.parse(socket.read)
-        receive(uid, message)
+        receive(user_id, message)
       end
     rescue EOFError, IOError
       info "EOF Client disconnected"
-      close(uid, socket)
+      close(user_id, socket)
     end
 
-    def receive(uid, message)
+    def receive(user_id, message)
       case message['kind']
       when 'game'
         info "Recived game message: #{message}"
-        Actor[:game_server].async.handle(uid, message)
+        Actor[:game_server].async.handle(user_id, message)
       when 'chat'
         info "Chat Controller"
       else
@@ -47,22 +45,22 @@ module Servers
     end
 
     def send_all(message)
-      @socket_uid.values.each { |uid| send(uid, message) }
+      @socket_user_id.values.each { |user_id| send(user_id, message) }
     end
 
-    def send(uid, message)
+    def send(user_id, message)
       info "Sending message #{message}"
-      socket = @uid_socket[uid]
+      socket = @user_id_socket[user_id]
       socket << message
     rescue Reel::SocketError
       info "Could not send message. Client disconnected"
-      close(uid, message)
+      close(user_id, message)
     end
 
-    def close(uid, socket)
-      @uid_socket.delete(uid)
-      @socket_uid.delete(socket)
-      publish(SOCKET_CLOSE, uid)
+    def close(user_id, socket)
+      @user_id_socket.delete(user_id)
+      @socket_user_id.delete(socket)
+      publish(SOCKET_CLOSE, user_id)
       socket.close
     end
   end

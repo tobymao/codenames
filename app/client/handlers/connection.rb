@@ -1,5 +1,6 @@
 module Handlers
   class Connection
+    include Notifier
     API_URL = "ws://#{`window.location.hostname`}:8080/api"
 
     def initialize
@@ -13,13 +14,13 @@ module Handlers
 
     def on_open(e)
       puts "Websocket open"
-      send(:game, :new, nil)
+      send(:game, :all, nil)
     end
 
     def on_message(e)
       puts "Received message #{e.data}"
       message = JSON.parse(e.data)
-      NOTIFIER.publish(self, message[:kind], message)
+      publish(self, message[:kind], message)
     end
 
     def on_close(e)

@@ -14,8 +14,15 @@ module Servers
         new_game(user_id)
       when 'join'
         join_game(user_id, message['data'])
+      when 'team'
+        game_id = message['data']['game_id']
+        color = message['data']['color']
+        master = message['data']['master']
+        join_team(user_id, game_id, color, master)
       when 'choose'
-        choose_word(user_id, message['data']['game_id'], message['data']['value'])
+        game_id = message['data']['game_id']
+        value = message['data']['value']
+        choose_word(user_id, game_id, value)
       else
       end
     end
@@ -26,11 +33,32 @@ module Servers
 
     def new_game(user_id)
       game = Game.new(id: SecureRandom.uuid, first: Random.rand(2) == 0 ? :red : :blue)
-      game.team_a.members << user_id
       @games[game.id] = game
-
       send_join_game(user_id, game)
       send_all(:new, game.id)
+    end
+
+    def join_game(user_id, game_id)
+      game = @games[game_id]
+
+      if game.team_a.members.size > game.team_b.members.size
+        game.team_b.members << user_id
+      else
+        game.team_a.members << user_id
+      end
+
+      send_join_game(user_id, game)
+    end
+
+    def join_team(user_id, game_id, color, master)
+      game = @games[game_id]
+      team = game.team_for_color(color)
+
+      if master
+        team.master = user_id
+      else
+        team.members << user_id
+      end
     end
 
     def choose_word(user_id, game_id, value)
@@ -45,17 +73,6 @@ module Servers
       end
     end
 
-    def join_game(user_id, game_id)
-      game = @games[game_id]
-
-      if game.team_a.members.size > game.team_b.members.size
-        game.team_b.members << user_id
-      else
-        game.team_a.members << user_id
-      end
-
-      send_join_game(user_id, game)
-    end
 
     def send_join_game(user_id, game)
       send(user_id, :join, game.to_data)

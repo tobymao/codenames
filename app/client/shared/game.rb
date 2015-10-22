@@ -1,8 +1,3 @@
-if RUBY_ENGINE == 'opal'
-  require 'shared/word'
-  require 'shared/team'
-end
-
 class Game
   WORDS = %w(Acne Acre Addendum Advertise Aircraft Aisle Alligator Alphabetize America Ankle Apathy Applause Applesauce Application Archaeologist Aristocrat Arm Armada Asleep Astronaut Athlete Atlantis Aunt Avocado Acorn).freeze
 
@@ -46,6 +41,11 @@ class Game
     unless @grid = grid
       @grid = setup_grid if !@grid
     end
+  end
+
+  def team_for_color(color)
+    @team_a if color == @team_a.color
+    @team_b if color == @team_b.color
   end
 
   def give_clue(clue, count)

@@ -20,6 +20,8 @@ module Stores
         on_new_game(message[:data])
       when :join
         on_join_game(message[:data])
+      when :team
+        on_join_team(message[:data])
       when :choose
         on_word_click(message[:data], false)
       end
@@ -31,6 +33,10 @@ module Stores
 
     def join_game(game_id)
       Handlers::CONNECTION.send(:game, :join, game_id)
+    end
+
+    def join_team(color, master)
+      Handlers::CONNECTION.send(:game, :join_team, { color: color, master: master })
     end
 
     def on_word_click(value, send_to_server=true)

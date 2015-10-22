@@ -1,7 +1,6 @@
 module Components
   class MainComponent
     include React::Component
-    include Handlers::Notifier
 
     define_state(:current_user)
     define_state(:users) { [] }

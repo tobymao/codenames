@@ -1,18 +1,14 @@
-require 'stores/games_store'
-
 module Components
   class LobbyComponent
     include React::Component
 
-    define_state(:games) { [] }
-
-    before_mount do
-      Stores::GAMES_STORE.subscribe(self, :update, :on_update)
+    params do
+      requires :games
     end
 
     def render
       div class_name: 'lobby' do
-        self.games.map do |game|
+        params[:games].map do |game|
           button { game }.on(:click) { Stores::GAMES_STORE.join_game(game) }
         end
 
@@ -20,10 +16,6 @@ module Components
           Stores::GAMES_STORE.new_game
         end
       end
-    end
-
-    def on_update(sender, message)
-      self.games = Stores::GAMES_STORE.games
     end
   end
 end

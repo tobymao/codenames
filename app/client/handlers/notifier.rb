@@ -19,7 +19,7 @@ module Handlers
     end
 
     def publish(sender, name, message)
-      return if @events.empty?
+      return unless @events
 
       @events[name].each do |event|
         if method = event[:method]

@@ -1,5 +1,6 @@
 if RUBY_ENGINE == 'opal'
   require 'shared/word'
+  require 'shared/team'
 end
 
 class Game
@@ -12,8 +13,8 @@ class Game
     new(
       id: data[:id],
       first: data[:first],
-      team_a: data[:team_a],
-      team_b: data[:team_b],
+      team_a: Team.from_data(data[:team_a]),
+      team_b: Team.from_data(data[:team_b]),
       current: data[:current],
       grid: data[:grid].map do |row|
         row.map { |word| Word.from_data(word) }
@@ -25,8 +26,8 @@ class Game
     {
       id: @id,
       first: @first,
-      team_a: @team_a,
-      team_b: @team_b,
+      team_a: @team_a.to_data,
+      team_b: @team_b.to_data,
       current: @current,
       grid: @grid.map { |row| row.map(&:to_data) },
     }
@@ -38,8 +39,8 @@ class Game
     @id = id
     @first = first
 
-    @team_a = { color: :red, members: [] }  || @team_a
-    @team_b = { color: :blue, members: [] }  || @team_b
+    @team_a = team_a || Team.new(color: first)
+    @team_b = team_b || Team.new(color: first == :red ? :blue : :red)
     @current = current || @first
 
     unless @grid = grid

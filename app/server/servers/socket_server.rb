@@ -13,14 +13,11 @@ module Servers
     end
 
     def connect(socket)
-      message = JSON.parse(socket.read)
-      user_id = message['user_id']
-      async.listen(user_id, socket)
+      user_id = SecureRandom.uuid
       info "User connected #{user_id}"
-
+      async.listen(user_id, socket)
       @user_id_socket[user_id] = socket
       @socket_user_id[socket] = user_id
-      async.listen(user_id, socket)
     end
 
     def listen(user_id, socket)
@@ -33,12 +30,13 @@ module Servers
     end
 
     def receive(user_id, message)
+      info "Recived message: #{message}"
       case message['kind']
       when 'game'
-        info "Recived game message: #{message}"
         Actor[:game_server].async.handle(user_id, message)
+      when 'user'
+        Actor[:user_server].async.handle(user_id, message)
       when 'chat'
-        info "Chat Controller"
       else
         info "Unknown controller #{message}"
       end

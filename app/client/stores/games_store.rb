@@ -1,7 +1,5 @@
 require 'handlers/notifier'
 require 'handlers/connection'
-require 'shared/game'
-require 'shared/word'
 
 module Stores
   class GamesStore
@@ -10,20 +8,20 @@ module Stores
     attr_reader :games, :current_game
 
     def initialize
-      Handlers::CONNECTION.subscribe(self, :game, :on_game_update)
       @games = []
+      Handlers::CONNECTION.subscribe(self, :game, :on_game_update)
     end
 
     def on_game_update(sender, message)
       case message[:action]
       when :all
-        on_all_games(message[:data][:game_ids])
+        on_all_games(message[:data])
       when :new
-        on_new_game(message[:data][:game_id])
+        on_new_game(message[:data])
       when :join
         on_join_game(message[:data])
       when :choose
-        on_word_click(message[:data][:value], false)
+        on_word_click(message[:data], false)
       end
     end
 
@@ -32,7 +30,7 @@ module Stores
     end
 
     def join_game(game_id)
-      Handlers::CONNECTION.send(:game, :join, { game_id: game_id })
+      Handlers::CONNECTION.send(:game, :join, game_id)
     end
 
     def on_word_click(value, send_to_server=true)
@@ -53,7 +51,8 @@ module Stores
 
     def on_new_game(game_id)
       @games << game_id
-      @games.uniq!
+      # This is a hack to get react rerendering to work.
+      @games = @games.uniq
       publish(self, :update, nil)
     end
 

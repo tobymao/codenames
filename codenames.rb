@@ -48,6 +48,7 @@ build_app(false)
 
 container = Celluloid::Supervision::Configuration.deploy([
   { type: Servers::WebServer, as: :web_server },
+  { type: Servers::UserServer, as: :user_server },
   { type: Servers::SocketServer, as: :socket_server },
   { type: Servers::GameServer, as: :game_server },
 ])

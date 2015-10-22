@@ -1,26 +1,35 @@
-require 'stores/games_store'
 
 module Components
   class GameComponent
     include React::Component
-    include Handlers::Notifier
 
-    define_state(:game) { }
-
-    before_mount do
-      Stores::GAMES_STORE.subscribe(self, :update, :on_update)
+    params do
+      requires :users
+      requires :game
     end
 
     def render
-      return unless self.game
+      return unless game = params[:game]
 
       div class_name: "game" do
-        present GridComponent, grid: self.game.grid, delegate: Stores::GAMES_STORE
+        render_team(game.team_a)
+        render_team(game.team_b)
+        present GridComponent, grid: game.grid
       end
     end
 
-    def on_update(sender, message)
-      self.game = Stores::GAMES_STORE.current_game
+    def render_team(team)
+      master = params[:users][team.master].name if team.master
+
+      members = team.members.map do |user_id|
+        params[:users][user_id].name
+      end
+
+      div do
+        div { "Team: #{team.color}" }
+        div { "Spy Master: #{master}" }
+        div { "Members: #{members}" }
+      end
     end
   end
 end

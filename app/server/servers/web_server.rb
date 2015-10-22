@@ -2,7 +2,7 @@ module Servers
   class WebServer < Reel::Server::HTTP
     include Celluloid::Internals::Logger
 
-    def initialize(host = "127.0.0.1", port = 8090)
+    def initialize(host = "0.0.0.0", port = 8090)
       info "Server started on #{host}:#{port}"
       super(host, port, &method(:on_connection))
     end

@@ -16,7 +16,7 @@ module Servers
       when 'new'
         new_game(user_id)
       when 'join'
-        join_game(user_id, message['data']['game_id'])
+        join_game(user_id, message['data'])
       when 'choose'
         choose_word(user_id, message['data']['game_id'], message['data']['value'])
       else
@@ -24,18 +24,18 @@ module Servers
     end
 
     def all_games(user_id)
-      data = { kind: 'game', action: 'all', data: { game_ids: @games.keys } }
+      data = { kind: 'game', action: 'all', data: @games.keys }
       Actor[:socket_server].async.send(user_id, data.to_json)
     end
 
     def new_game(user_id)
       game = Game.new(id: SecureRandom.uuid, first: Random.rand(2) == 0 ? :red : :blue)
-      game.team_a[:members] << user_id
+      game.team_a.members << user_id
       @games[game.id] = game
 
       send_join_game(user_id, game)
 
-      data = { kind: 'game', action: 'new', data: { game_id: game.id } }
+      data = { kind: 'game', action: 'new', data: game.id }
       Actor[:socket_server].async.send_all(data.to_json)
     end
 
@@ -43,18 +43,24 @@ module Servers
       game = @games[game_id]
       word = game.choose_word(value)
 
-      users = game.team_a[:members] + game.team_b[:members]
+      users = game.team_a.members + game.team_b.members
 
       users.each do |user|
         next if user_id == user
-        data = { kind: 'game', action: 'choose', data: { value: value } }
+        data = { kind: 'game', action: 'choose', data: value }
         Actor[:socket_server].async.send(user, data.to_json)
       end
     end
 
     def join_game(user_id, game_id)
       game = @games[game_id]
-      game.team_b[:members] << user_id
+
+      if game.team_a.members.size > game.team_b.members.size
+        game.team_b.members << user_id
+      else
+        game.team_a.members << user_id
+      end
+
       send_join_game(user_id, game)
     end
 

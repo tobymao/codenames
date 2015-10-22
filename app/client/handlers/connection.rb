@@ -1,7 +1,7 @@
 module Handlers
   class Connection
     include Notifier
-    API_URL = "ws://#{`window.location.hostname`}:8080/api"
+    API_URL = "ws://#{`window.location.hostname`}:8090/api"
 
     def initialize
       @socket = Browser::Socket.new(API_URL) do |ws|
@@ -15,6 +15,7 @@ module Handlers
     def on_open(e)
       puts "Websocket open"
       send(:game, :all, nil)
+      send(:user, :all, nil)
     end
 
     def on_message(e)

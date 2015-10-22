@@ -2,7 +2,6 @@ require 'require_all'
 require 'celluloid/current'
 require 'fortitude'
 require 'reel'
-require 'webrick'
 
 require 'opal'
 require 'opal/util'
@@ -41,7 +40,6 @@ def build_app(uglify)
 end
 
 Opal.append_path "app/client"
-
 
 build_lib(true) if !File.exists?(LIB_PATH) || File.mtime(LIB_PATH) < File.mtime(LIB_INCLUDE)
 build_app(false)

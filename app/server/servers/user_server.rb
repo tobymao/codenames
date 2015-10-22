@@ -1,10 +1,7 @@
 module Servers
-  class UserServer
-    include Celluloid
-    include Celluloid::Notifications
-    include Celluloid::Internals::Logger
-
-    def initialize()
+  class UserServer < BaseServer
+    def initialize
+      @name = :user
       @users = {}
       subscribe(SocketServer::SOCKET_CLOSE, :on_socket_close)
     end
@@ -20,24 +17,17 @@ module Servers
     end
 
     def login(user_id, name)
-      if @users[user_id]
-        data = { kind: 'user', action: 'error', data: "name in use" }
-        Actor[:socket_server].async.send(user_id, data.to_json)
-      else
-        user = User.new(id: user_id, name: name)
-        @users[user.id] = user
-        data = { kind: 'user', action: 'authenticate', data: user.to_data }
-        Actor[:socket_server].async.send(user_id, data.to_json)
-        general = { kind: 'user', action: 'login', data: user.to_data }
-        Actor[:socket_server].async.send_all(general.to_json)
-      end
+      user = User.new(id: user_id, name: name)
+      @users[user.id] = user
+      data = user.to_data
+      send(user_id, :authenticate, data)
+      send_all(:login, data)
     end
 
     def all_users(user_id)
       users = {}
       @users.each { |id, user| users[id] = user.to_data }
-      data = { kind: 'user', action: 'all', data: users }
-      Actor[:socket_server].async.send(user_id, data.to_json)
+      send(user_id, :all, users)
     end
 
     # To Do: Clean up user...

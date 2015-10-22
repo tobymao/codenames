@@ -1,10 +1,7 @@
 module Servers
-  class GameServer
-    include Celluloid
-    include Celluloid::Notifications
-    include Celluloid::Internals::Logger
-
-    def initialize()
+  class GameServer < BaseServer
+    def initialize
+      @name = :game
       @games = {}
       subscribe(SocketServer::SOCKET_CLOSE, :on_socket_close)
     end
@@ -24,8 +21,7 @@ module Servers
     end
 
     def all_games(user_id)
-      data = { kind: 'game', action: 'all', data: @games.keys }
-      Actor[:socket_server].async.send(user_id, data.to_json)
+      send(user_id, :all, @games.keys)
     end
 
     def new_game(user_id)
@@ -34,21 +30,18 @@ module Servers
       @games[game.id] = game
 
       send_join_game(user_id, game)
-
-      data = { kind: 'game', action: 'new', data: game.id }
-      Actor[:socket_server].async.send_all(data.to_json)
+      send_all(:new, game.id)
     end
 
     def choose_word(user_id, game_id, value)
       game = @games[game_id]
       word = game.choose_word(value)
 
-      users = game.team_a.members + game.team_b.members
+      user_ids = game.team_a.members + game.team_b.members
 
-      users.each do |user|
-        next if user_id == user
-        data = { kind: 'game', action: 'choose', data: value }
-        Actor[:socket_server].async.send(user, data.to_json)
+      user_ids.each do |id|
+        next if user_id == id
+        send(user, :choose, value)
       end
     end
 
@@ -65,8 +58,7 @@ module Servers
     end
 
     def send_join_game(user_id, game)
-      data = { kind: 'game', action: 'join', data: game.to_data }
-      Actor[:socket_server].async.send(user_id, data.to_json)
+      send(user_id, :join, game.to_data)
     end
 
     # To Do: Clean up user...

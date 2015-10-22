@@ -42,11 +42,14 @@ module Servers
       end
     end
 
-    def send_all(message)
-      @socket_user_id.values.each { |user_id| send(user_id, message) }
+    def send_all(kind, action, data)
+      @socket_user_id.values.each do |user_id|
+        send(user_id, kind, action, data)
+      end
     end
 
-    def send(user_id, message)
+    def send(user_id, kind, action, data)
+      message = { kind: kind, action: action, data: data }.to_json
       info "Sending message #{message}"
       socket = @user_id_socket[user_id]
       socket << message

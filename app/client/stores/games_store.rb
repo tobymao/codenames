@@ -21,7 +21,10 @@ module Stores
       when :join
         on_join_game(message[:data])
       when :team
-        on_join_team(message[:data])
+        user_id = message[:data][:user_id]
+        color = message[:data][:color]
+        master = message[:data][:master]
+        on_join_team(user_id, color, master)
       when :choose
         on_word_click(message[:data], false)
       end
@@ -36,18 +39,9 @@ module Stores
     end
 
     def join_team(color, master)
-      Handlers::CONNECTION.send(:game, :join_team, { color: color, master: master })
-    end
-
-    def on_word_click(value, send_to_server=true)
-      return unless word = @current_game.choose_word(value)
-      # This is a hack to get react rerendering to work.
-      set_current_game(@current_game.to_data)
-
-      if send_to_server
-        data = { game_id: @current_game.id, value: value }
-        Handlers::CONNECTION.send(:game, :choose, data)
-      end
+      user_join_team(Stores::USERS_STORE.current_user.id, color, master)
+      data = { game_id: @current_game.id, color: color, master: master }
+      Handlers::CONNECTION.send(:game, :team, data)
     end
 
     def on_all_games(game_ids)
@@ -66,10 +60,31 @@ module Stores
       set_current_game(data)
     end
 
+    def on_join_team(user_id, color, master)
+      user_join_team(user_id, color, master)
+    end
+
+    def on_word_click(value, send_to_server=true)
+      return unless word = @current_game.choose_word(value)
+      # This is a hack to get react rerendering to work.
+      set_current_game(@current_game.to_data)
+
+      if send_to_server
+        data = { game_id: @current_game.id, value: value }
+        Handlers::CONNECTION.send(:game, :choose, data)
+      end
+    end
+
     private
     def set_current_game(data)
       game = Game.from_data(data)
       @current_game = game
+      publish(self, :update, nil)
+    end
+
+    def user_join_team(user_id, color, master)
+      @current_game.join_team(user_id, color, master)
+      set_current_game(@current_game.to_data)
       publish(self, :update, nil)
     end
   end

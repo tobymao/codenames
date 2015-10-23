@@ -1,8 +1,8 @@
 class Game
   WORDS = %w(Acne Acre Addendum Advertise Aircraft Aisle Alligator Alphabetize America Ankle Apathy Applause Applesauce Application Archaeologist Aristocrat Arm Armada Asleep Astronaut Athlete Atlantis Aunt Avocado Acorn).freeze
 
-  attr_reader :id, :first, :current, :grid, :winner, :team_a, :team_b
-  attr_accessor :team_a, :team_b
+  attr_reader :id, :first, :team_a, :team_b, :current, :grid, :winner, :clue, :count
+  attr_accessor :watchers
 
   def self.from_data(data)
     new(
@@ -28,11 +28,13 @@ class Game
     }
   end
 
-  def initialize(id:, first:, team_a: nil, team_b: nil, current: nil, grid: nil)
-    @clues = 0
+  def initialize(id:, first:, team_a: nil, team_b: nil, current: nil, grid: nil, clue: nil, count: nil)
+    @watchers = []
 
     @id = id
     @first = first
+    @clue = clue
+    @count = count || 0
 
     @team_a = team_a || Team.new(color: first)
     @team_b = team_b || Team.new(color: first == :red ? :blue : :red)
@@ -43,22 +45,41 @@ class Game
     end
   end
 
+  def join_team(user_id, color, master)
+    @team_a.members.delete(user_id)
+    @team_b.members.delete(user_id)
+    @team_a.master = nil if @team_a.master == user_id
+    @team_b.master = nil if @team_b.master == user_id
+
+    team = team_for_color(color)
+
+    if master
+      team.master = user_id
+    else
+      team.members << user_id
+    end
+  end
+
+  def master?(user_id)
+    @team_a.master == user_id || @team_b.master == user_id
+  end
+
   def team_for_color(color)
-    @team_a if color == @team_a.color
-    @team_b if color == @team_b.color
+    color == @team_a.color.to_s ?  @team_a : @team_b
   end
 
   def give_clue(clue, count)
-    @clues = count
+    @clue = clue
+    @count = count
   end
 
   def end_turn
     @current = other
-    @clues = 0
+    @count = 0
   end
 
   def end_game(winner)
-    @clues = 0
+    @count = 0
     @winner = winner
   end
 
@@ -68,9 +89,9 @@ class Game
     return nil if word.chosen?
 
     word.choose
-    @clues -= 1
+    @count -= 1
 
-    if @current != word.owner || @clues <= 0
+    if @current != word.owner || @count <= 0
       end_turn
     end
 

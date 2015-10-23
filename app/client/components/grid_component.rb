@@ -4,6 +4,7 @@ module Components
 
     params do
       requires :grid
+      requires :master
     end
 
     def word_style(word)
@@ -16,13 +17,20 @@ module Components
         when :neutral
           'burlywood'
         when :assasin
-          'dimgray'
-        end if word.chosen?
+          'darkslategray'
+        end
 
       {
         display: 'inline-block',
-        color: color || 'black',
-        margin: '5px',
+        color: word.chosen? ? color : 'black',
+        margin: '0.5%',
+        border: "0.5vw solid #{params[:master] ? color : 'black'}",
+        width: '17%',
+        padding: '3%' '0%' '3%' '0%',
+        textAlign: 'center',
+        background: word.chosen? ? color : 'white',
+        fontSize: '2.5vw',
+        cursor: 'pointer',
       }
     end
 

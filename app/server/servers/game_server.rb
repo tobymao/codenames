@@ -9,70 +9,72 @@ module Servers
     def handle(user_id, message)
       case message['action']
       when 'all'
-        all_games(user_id)
+        all(user_id)
       when 'new'
-        new_game(user_id)
+        new(user_id)
       when 'join'
-        join_game(user_id, message['data'])
+        join(user_id, message['data'])
       when 'team'
         game_id = message['data']['game_id']
         color = message['data']['color']
         master = message['data']['master']
-        join_team(user_id, game_id, color, master)
+        team(user_id, game_id, color, master)
       when 'choose'
         game_id = message['data']['game_id']
         value = message['data']['value']
-        choose_word(user_id, game_id, value)
+        choose(user_id, game_id, value)
+      when 'give'
+        game_id = message['data']['game_id']
+        clue = message['data']['clue']
+        count = message['data']['count']
+        give(user_id, game_id, clue, count)
       else
       end
     end
 
-    def all_games(user_id)
+    def all(user_id)
       send(user_id, :all, @games.keys)
     end
 
-    def new_game(user_id)
+    def new(user_id)
       game = Game.new(id: SecureRandom.uuid, first: Random.rand(2) == 0 ? :red : :blue)
+      game.watchers << user_id
       @games[game.id] = game
       send_join_game(user_id, game)
       send_all(:new, game.id)
     end
 
-    def join_game(user_id, game_id)
+    def join(user_id, game_id)
       game = @games[game_id]
-
-      if game.team_a.members.size > game.team_b.members.size
-        game.team_b.members << user_id
-      else
-        game.team_a.members << user_id
-      end
-
+      game.watchers << user_id
       send_join_game(user_id, game)
     end
 
-    def join_team(user_id, game_id, color, master)
+    def team(user_id, game_id, color, master)
       game = @games[game_id]
-      team = game.team_for_color(color)
-
-      if master
-        team.master = user_id
-      else
-        team.members << user_id
-      end
+      game.join_team(user_id, color, master)
+      data = { user_id: user_id, color: color, master: master}
+      send_game_watchers(game, :team, data, user_id)
     end
 
-    def choose_word(user_id, game_id, value)
+    def choose(user_id, game_id, value)
       game = @games[game_id]
       word = game.choose_word(value)
-
-      user_ids = game.team_a.members + game.team_b.members
-
-      user_ids.each do |id|
-        next if user_id == id
-        send(user, :choose, value)
-      end
+      send_game_watchers(game, :choose, value, user_id)
     end
 
+    def give(user_id, game_id, clue, count)
+      game = @games[game_id]
+      game.give_clue(clue, count)
+      send_game_watchers(game, :give, value, user_id)
+    end
+
+    def send_game_watchers(game, kind, data, ignore_user_id=nil)
+      game.watchers.each do |user_id|
+        next if user_id == ignore_user_id
+        send(user_id, kind, data)
+      end
+    end
 
     def send_join_game(user_id, game)
       send(user_id, :join, game.to_data)

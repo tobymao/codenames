@@ -24,7 +24,8 @@ module Components
 
         if self.current_user
           present LobbyComponent, games: self.games
-          present GameComponent, users: self.users, game: self.current_game
+          present GameComponent, user: self.current_user, users: self.users, game: self.current_game
+
         else
           present LoginComponent
         end

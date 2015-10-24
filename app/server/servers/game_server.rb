@@ -28,6 +28,8 @@ module Servers
         clue = message['data']['clue']
         count = message['data']['count']
         give(user_id, game_id, clue, count)
+      when 'pass'
+        pass(user_id, message['data'])
       else
       end
     end
@@ -70,6 +72,12 @@ module Servers
       send_game_watchers(game, :give, data, user_id)
     end
 
+    def pass(user_id, game_id)
+      game = @games[game_id]
+      game.pass
+      send_game_watchers(game, :pass, nil, user_id)
+    end
+
     def send_game_watchers(game, kind, data, ignore_user_id=nil)
       game.watchers.each do |user_id|
         next if user_id == ignore_user_id
@@ -81,9 +89,9 @@ module Servers
       send(user_id, :join, game.to_data)
     end
 
-    # To Do: Clean up user...
+    # Notifications
     def on_socket_close(pattern, user_id)
-      info "socket closed #{user_id}"
+      @games.values.each { |game| game.leave(user_id) }
     end
   end
 end

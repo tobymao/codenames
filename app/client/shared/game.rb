@@ -1,5 +1,10 @@
 class Game
-  WORDS = %w(Acne Acre Addendum Advertise Aircraft Aisle Alligator Alphabetize America Ankle Apathy Applause Applesauce Application Archaeologist Aristocrat Arm Armada Asleep Astronaut Athlete Atlantis Aunt Avocado Acorn).freeze
+  @@cards =
+    begin
+      path = File.expand_path('../../../../assets/cards.json', __FILE__)
+      file = File.read(path)
+      JSON.parse(file)
+    end if RUBY_ENGINE != 'opal'
 
   attr_reader :id, :first, :team_a, :team_b, :current, :grid, :winner, :clue, :count, :remaining, :watchers
 
@@ -51,11 +56,7 @@ class Game
   end
 
   def join_team(user_id, color, master)
-    @team_a.members.delete(user_id)
-    @team_b.members.delete(user_id)
-    @team_a.master = nil if @team_a.master == user_id
-    @team_b.master = nil if @team_b.master == user_id
-
+    leave(user_id, false)
     team = team_for_color(color)
 
     if master
@@ -63,6 +64,14 @@ class Game
     else
       team.members << user_id
     end
+  end
+
+  def leave(user_id, all=true)
+    @watchers.delete(user_id) if watchers
+    @team_a.members.delete(user_id)
+    @team_b.members.delete(user_id)
+    @team_a.master = nil if @team_a.master == user_id
+    @team_b.master = nil if @team_b.master == user_id
   end
 
   def master?(user_id)
@@ -120,8 +129,7 @@ class Game
   end
 
   def left(color)
-    puts "Left #{color}"
-    @grid.flatten.select { |w| w.color?(color) }.size
+    @grid.flatten.select { |w| w.color?(color) && !w.chosen }.size
   end
 
   def setup_grid
@@ -135,9 +143,9 @@ class Game
 
     matrix = [[], [], [] ,[] ,[]]
 
-    WORDS.sample(25).each_with_index do |word, index|
+    @@cards.sample(25).each_with_index do |card, index|
       random_index = rand(pool.length)
-      matrix[index / 5] << Word.new(word, pool.delete_at(random_index), false)
+      matrix[index / 5] << Word.new(card.sample(1).first, pool.delete_at(random_index), false)
     end
 
     matrix

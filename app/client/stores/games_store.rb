@@ -10,6 +10,7 @@ module Stores
     def initialize
       @games = []
       Handlers::CONNECTION.subscribe(self, :game, :on_game_update)
+      UsersStore::USERS_STORE.subscribe(self, :on_leave, :on_leave)
     end
 
     def on_game_update(sender, message)
@@ -31,6 +32,8 @@ module Stores
         clue = message[:data][:clue]
         count = message[:data][:count]
         on_give(clue, count, false)
+      when :pass
+        on_pass(false)
       end
     end
 
@@ -90,6 +93,15 @@ module Stores
       end
     end
 
+    def on_pass(send_to_server=true)
+      @current_game.pass
+      set_current_game(@current_game.to_data)
+
+      if send_to_server
+        Handlers::CONNECTION.send(:game, :pass, @current_game.id)
+      end
+    end
+
     private
     def set_current_game(data)
       game = Game.from_data(data)
@@ -100,7 +112,12 @@ module Stores
     def user_join_team(user_id, color, master)
       @current_game.join_team(user_id, color, master)
       set_current_game(@current_game.to_data)
-      publish(self, :update, nil)
+    end
+
+    # UserStore call back
+    def on_leave(sender, user_id)
+      @current_game.leave(user_id)
+      set_current_game(@current_game.to_data)
     end
   end
 

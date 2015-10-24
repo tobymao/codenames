@@ -17,7 +17,7 @@ module Components
         when :neutral
           'burlywood'
         when :assasin
-          'darkslategray'
+          'black'
         end
 
       {

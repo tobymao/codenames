@@ -20,6 +20,8 @@ module Stores
         on_authenticated(message[:data])
       when :login
         on_login(message[:data])
+      when :leave
+        on_leave(message[:data])
       else
       end
     end
@@ -43,6 +45,12 @@ module Stores
       data.each { |id, user_data| @users[id] = User.from_data(user_data) }
       @users = users
       publish(self, :update, nil)
+    end
+
+    def on_leave(user_id)
+      @users.delete(user_id)
+      publish(self, :update, nil)
+      publish(self, :on_leave, user_id)
     end
   end
 

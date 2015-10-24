@@ -24,8 +24,8 @@ module Servers
       while message = JSON.parse(socket.read)
         receive(user_id, message)
       end
-    rescue EOFError, IOError
-      info "EOF Client disconnected"
+    rescue
+      info "EOF #{user_id} disconnected"
       close(user_id, socket)
     end
 
@@ -38,7 +38,7 @@ module Servers
         Actor[:user_server].async.handle(user_id, message)
       when 'chat'
       else
-        info "Unknown controller #{message}"
+        error "Unknown controller #{message}"
       end
     end
 
@@ -49,12 +49,14 @@ module Servers
     end
 
     def send(user_id, kind, action, data)
-      message = { kind: kind, action: action, data: data }.to_json
-      info "Sending message #{message}"
-      socket = @user_id_socket[user_id]
-      socket << message
-    rescue Reel::SocketError
-      info "Could not send message. Client disconnected"
+      if socket = @user_id_socket[user_id]
+        message = { kind: kind, action: action, data: data }.to_json
+        socket << message
+      else
+        error "Tried sending to #{user_id} but socket is gone"
+      end
+    rescue
+      info "Could not send message. #{user_id} disconnected"
       close(user_id, message)
     end
 
@@ -63,6 +65,7 @@ module Servers
       @socket_user_id.delete(socket)
       publish(SOCKET_CLOSE, user_id)
       socket.close
+      send_all(:user, :leave, user_id)
     end
   end
 end

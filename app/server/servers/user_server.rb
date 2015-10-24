@@ -30,9 +30,9 @@ module Servers
       send(user_id, :all, users)
     end
 
-    # To Do: Clean up user...
+    # Notifications
     def on_socket_close(pattern, user_id)
-      info "socket closed #{user_id}"
+      @users.delete(user_id)
     end
   end
 end

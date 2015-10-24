@@ -30,6 +30,9 @@ module Components
           color: game.current,
         },
       }
+
+      master = game.master?(user.id)
+
       div class_name: 'game' do
         render_team(game.team_a)
 
@@ -66,9 +69,13 @@ module Components
           button(value: self.clue) { "Give Clue" }.on(:click) do |e|
             Stores::GAMES_STORE.on_give(self.clue, self.count)
           end
+        end if master
+
+        button { "Pass Turn" }.on(:click) do |e|
+          Stores::GAMES_STORE.on_pass
         end
 
-        present GridComponent, grid: game.grid, master: game.master?(user.id)
+        present GridComponent, grid: game.grid, master: master
       end
     end
 

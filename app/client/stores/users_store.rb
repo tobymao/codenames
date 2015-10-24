@@ -12,12 +12,17 @@ module Stores
       Handlers::CONNECTION.subscribe(self, :user, :on_update)
     end
 
+    def login(name)
+      Handlers::CONNECTION.send(:user, :login, name)
+    end
+
+    private
     def on_update(sender, message)
       case message[:action]
       when :all
-        on_all_users(message[:data])
+        on_all(message[:data])
       when :authenticate
-        on_authenticated(message[:data])
+        on_authenticate(message[:data])
       when :login
         on_login(message[:data])
       when :leave
@@ -26,11 +31,13 @@ module Stores
       end
     end
 
-    def login(name)
-      Handlers::CONNECTION.send(:user, :login, name)
+    def on_all(data)
+      data.each { |id, user_data| @users[id] = User.from_data(user_data) }
+      @users = users
+      publish(self, :update, nil)
     end
 
-    def on_authenticated(data)
+    def on_authenticate(data)
       @current_user = User.from_data(data)
       publish(self, :update, nil)
     end
@@ -41,16 +48,10 @@ module Stores
       publish(self, :update, nil)
     end
 
-    def on_all_users(data)
-      data.each { |id, user_data| @users[id] = User.from_data(user_data) }
-      @users = users
-      publish(self, :update, nil)
-    end
-
     def on_leave(user_id)
       @users.delete(user_id)
       publish(self, :update, nil)
-      publish(self, :on_leave, user_id)
+      publish(self, :leave, user_id)
     end
   end
 

@@ -11,7 +11,7 @@ module Servers
       when 'all'
         all(user_id)
       when 'new'
-        new(user_id)
+        new_game(user_id)
       when 'join'
         join(user_id, message['data'])
       when 'team'
@@ -31,6 +31,7 @@ module Servers
       when 'pass'
         pass(user_id, message['data'])
       else
+        error "GameServer received unknown action #{message['action']}"
       end
     end
 
@@ -38,7 +39,7 @@ module Servers
       send(user_id, :all, @games.keys)
     end
 
-    def new(user_id)
+    def new_game(user_id)
       game = Game.new(id: SecureRandom.uuid, first: Random.rand(2) == 0 ? :red : :blue)
       game.watchers << user_id
       @games[game.id] = game

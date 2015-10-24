@@ -67,12 +67,12 @@ module Components
           end
 
           button(value: self.clue) { "Give Clue" }.on(:click) do |e|
-            Stores::GAMES_STORE.on_give(self.clue, self.count)
+            Stores::GAMES_STORE.give(self.clue, self.count)
           end
         end if master
 
         button { "Pass Turn" }.on(:click) do |e|
-          Stores::GAMES_STORE.on_pass
+          Stores::GAMES_STORE.pass
         end
 
         present GridComponent, grid: game.grid, master: master
@@ -99,11 +99,11 @@ module Components
         div { "Team: #{team.color}" }
         div { "Spy Master: #{master}" }
         button { "Be #{team.color} spy master" }.on(:click) do
-          Stores::GAMES_STORE.join_team(team.color, true)
+          Stores::GAMES_STORE.team(team.color, true)
         end
         div { "Members: #{members}" }
         button { "Join #{team.color}" }.on(:click) do
-          Stores::GAMES_STORE.join_team(team.color, false)
+          Stores::GAMES_STORE.team(team.color, false)
         end
       end
     end

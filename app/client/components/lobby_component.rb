@@ -9,7 +9,7 @@ module Components
     def render
       div class_name: 'lobby' do
         params[:games].map do |game|
-          button { game }.on(:click) { Stores::GAMES_STORE.join_game(game) }
+          button { game }.on(:click) { Stores::GAMES_STORE.join(game) }
         end
 
         button { "New Game" }.on(:click) do

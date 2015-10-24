@@ -42,7 +42,7 @@ module Components
           div {
             row.map do |word|
               div(style: word_style(word)) { word.value }
-                .on(:click) { Stores::GAMES_STORE.on_choose(word.value) }
+                .on(:click) { Stores::GAMES_STORE.choose(word.value) }
             end
           }
         end

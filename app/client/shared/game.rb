@@ -1,8 +1,7 @@
 class Game
   WORDS = %w(Acne Acre Addendum Advertise Aircraft Aisle Alligator Alphabetize America Ankle Apathy Applause Applesauce Application Archaeologist Aristocrat Arm Armada Asleep Astronaut Athlete Atlantis Aunt Avocado Acorn).freeze
 
-  attr_reader :id, :first, :team_a, :team_b, :current, :grid, :winner, :clue, :count
-  attr_accessor :watchers
+  attr_reader :id, :first, :team_a, :team_b, :current, :grid, :winner, :clue, :count, :remaining, :watchers
 
   def self.from_data(data)
     new(
@@ -14,6 +13,10 @@ class Game
       grid: data[:grid].map do |row|
         row.map { |word| Word.from_data(word) }
       end,
+      winner: data[:winner],
+      clue: data[:clue],
+      count: data[:count],
+      remaining: data[:remaining],
     )
   end
 
@@ -25,24 +28,26 @@ class Game
       team_b: @team_b.to_data,
       current: @current,
       grid: @grid.map { |row| row.map(&:to_data) },
+      winner: @winner,
+      clue: @clue,
+      count: @count,
+      remaining: @remaining,
     }
   end
 
-  def initialize(id:, first:, team_a: nil, team_b: nil, current: nil, grid: nil, clue: nil, count: nil)
+  def initialize(id:, first:, team_a: nil, team_b: nil, current: nil, grid: nil, clue: nil, count: nil, remaining: nil)
     @watchers = []
 
     @id = id
     @first = first
     @clue = clue
-    @count = count || 0
+    @count = count
 
+    @remaining = remaining || 0
     @team_a = team_a || Team.new(color: first)
     @team_b = team_b || Team.new(color: first == :red ? :blue : :red)
     @current = current || @first
-
-    unless @grid = grid
-      @grid = setup_grid if !@grid
-    end
+    @grid = grid || setup_grid
   end
 
   def join_team(user_id, color, master)
@@ -71,40 +76,52 @@ class Game
   def give_clue(clue, count)
     @clue = clue
     @count = count
+    @remaining =
+      if ['Infinity', '0'].include?(count)
+        left(@current)
+      else
+        [count.to_i + 1, left(@current)].min
+      end
   end
 
-  def end_turn
+  def pass
     @current = other
-    @count = 0
+    @count = nil
+    @clue = nil
+    @remaining = 0
   end
 
   def end_game(winner)
-    @count = 0
     @winner = winner
   end
 
   def choose_word(value)
     words = @grid.flatten
     word = words.find { |w| w.value == value }
-    return nil if word.chosen?
+    return false if word.chosen?
 
     word.choose
-    @count -= 1
+    @remaining -= 1
 
-    if @current != word.owner || @count <= 0
-      end_turn
+    if !word.color?(@current) || @remaining <= 0
+      pass
     end
 
     end_game(other) if word.assasin?
     end_game(:red) if words.select(&:red?).all?(&:chosen?)
     end_game(:blue) if words.select(&:blue?).all?(&:chosen?)
 
-    word
+    true
   end
 
   private
   def other
     @current == :red ? :blue : :red
+  end
+
+  def left(color)
+    puts "Left #{color}"
+    @grid.flatten.select { |w| w.color?(color) }.size
   end
 
   def setup_grid
@@ -113,8 +130,8 @@ class Game
 
     pool = [:assasin]
     7.times { pool << :neutral }
-    8.times { pool << first }
-    9.times { pool << second }
+    8.times { pool << second }
+    9.times { pool << first }
 
     matrix = [[], [], [] ,[] ,[]]
 

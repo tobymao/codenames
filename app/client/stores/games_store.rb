@@ -15,18 +15,22 @@ module Stores
     def on_game_update(sender, message)
       case message[:action]
       when :all
-        on_all_games(message[:data])
+        on_all(message[:data])
       when :new
-        on_new_game(message[:data])
+        on_new(message[:data])
       when :join
-        on_join_game(message[:data])
+        on_join(message[:data])
       when :team
         user_id = message[:data][:user_id]
         color = message[:data][:color]
         master = message[:data][:master]
-        on_join_team(user_id, color, master)
+        on_team(user_id, color, master)
       when :choose
-        on_word_click(message[:data], false)
+        on_choose(message[:data], false)
+      when :give
+        clue = message[:data][:clue]
+        count = message[:data][:count]
+        on_give(clue, count, false)
       end
     end
 
@@ -44,34 +48,45 @@ module Stores
       Handlers::CONNECTION.send(:game, :team, data)
     end
 
-    def on_all_games(game_ids)
+    def on_all(game_ids)
       @games = game_ids
       publish(self, :update, nil)
     end
 
-    def on_new_game(game_id)
+    def on_new(game_id)
       @games << game_id
       # This is a hack to get react rerendering to work.
       @games = @games.uniq
       publish(self, :update, nil)
     end
 
-    def on_join_game(data)
+    def on_join(data)
       set_current_game(data)
     end
 
-    def on_join_team(user_id, color, master)
+    def on_team(user_id, color, master)
       user_join_team(user_id, color, master)
     end
 
-    def on_word_click(value, send_to_server=true)
-      return unless word = @current_game.choose_word(value)
+    def on_choose(value, send_to_server=true)
+      return unless @current_game.choose_word(value)
       # This is a hack to get react rerendering to work.
       set_current_game(@current_game.to_data)
 
       if send_to_server
         data = { game_id: @current_game.id, value: value }
         Handlers::CONNECTION.send(:game, :choose, data)
+      end
+    end
+
+    def on_give(clue, count, send_to_server=true)
+      count = count.to_s
+      return unless @current_game.give_clue(clue, count)
+      set_current_game(@current_game.to_data)
+
+      if send_to_server
+        data = { game_id: @current_game.id, clue: clue, count: count }
+        Handlers::CONNECTION.send(:game, :give, data)
       end
     end
 

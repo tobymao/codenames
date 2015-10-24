@@ -66,7 +66,8 @@ module Servers
     def give(user_id, game_id, clue, count)
       game = @games[game_id]
       game.give_clue(clue, count)
-      send_game_watchers(game, :give, value, user_id)
+      data = { clue: clue, count: count }
+      send_game_watchers(game, :give, data, user_id)
     end
 
     def send_game_watchers(game, kind, data, ignore_user_id=nil)

@@ -45,13 +45,19 @@ module Stores
     def on_login(data)
       user = User.from_data(data)
       @users[user.id] = user
+      update_user
       publish(self, :update, nil)
     end
 
     def on_leave(user_id)
       @users.delete(user_id)
+      update_user
       publish(self, :update, nil)
       publish(self, :leave, user_id)
+    end
+
+    def update_user
+      @users = @users.clone
     end
   end
 

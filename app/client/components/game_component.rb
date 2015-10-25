@@ -8,8 +8,19 @@ module Components
       requires :game
     end
 
+    define_state(:messages)
+
+    before_mount do
+      Stores::CHAT_STORE.subscribe(self, :update, :on_chat_update)
+    end
+
+    before_unmount do
+      Stores::CHAT_STORE.unsubscribe_all(self)
+    end
+
     def render
       return unless game = params[:game]
+      Stores::CHAT_STORE.join(game.id) unless messages
 
       master = game.master?(user.id)
 
@@ -19,6 +30,7 @@ module Components
         render_team(game.team_b)
         present GiveComponent if master
         present GridComponent, grid: game.grid, master: master
+        present ChatComponent, game_id: game.id, messages: self.messages, users: users
       end
     end
 
@@ -49,6 +61,11 @@ module Components
           Stores::GAMES_STORE.team(team.color, false)
         end
       end
+    end
+
+    def on_chat_update(sender, message)
+      puts "*** CHAT UPDATE"
+      self.messages = Stores::CHAT_STORE.game_messages
     end
   end
 end

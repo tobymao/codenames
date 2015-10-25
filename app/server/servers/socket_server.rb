@@ -37,6 +37,7 @@ module Servers
       when 'user'
         Actor[:user_server].async.handle(user_id, message)
       when 'chat'
+        Actor[:chat_server].async.handle(user_id, message)
       else
         error "Unknown controller #{message}"
       end

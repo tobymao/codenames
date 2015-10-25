@@ -11,7 +11,7 @@ module Servers
       when 'login'
         login(user_id, message['data'])
       when 'all'
-        all_users(user_id)
+        all(user_id)
       else
       end
     end
@@ -24,7 +24,7 @@ module Servers
       send_all(:login, data)
     end
 
-    def all_users(user_id)
+    def all(user_id)
       users = {}
       @users.each { |id, user| users[id] = user.to_data }
       send(user_id, :all, users)

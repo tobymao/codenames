@@ -1,0 +1,19 @@
+body {
+	font-family: sans-serif;
+}
+
+button {
+	background: white;
+	border-radius: 0.3vw;
+	font-size: 2vw;
+	color: #555;
+	cursor: pointer;
+	border: 1px solid #bbb;
+	text-transform: uppercase;
+	outline: none;
+}
+
+button:hover {
+	border: 1px solid #555;
+}
+

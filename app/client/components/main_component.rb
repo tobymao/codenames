@@ -20,12 +20,12 @@ module Components
 
     def render
       div class_name: 'main' do
-        h1 { 'Code Names' }
-
         if self.current_user
-          present LobbyComponent, games: self.games
-          present GameComponent, user: self.current_user, users: self.users, game: self.current_game
-
+          if current_game
+            present GameComponent, user: self.current_user, users: self.users, game: self.current_game
+          else
+            present LobbyComponent, games: self.games
+          end
         else
           present LoginComponent
         end

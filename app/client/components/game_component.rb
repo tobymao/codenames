@@ -8,78 +8,21 @@ module Components
       requires :game
     end
 
-    define_state(:clue)
-    define_state(:count)
-
     def render
       return unless game = params[:game]
 
-      styles = {
-        clue_input: {
-          display: 'inline-block',
-          margin: '0',
-          width: '25%',
-          fontSize: '2vw',
-          textAlign: 'center',
-        },
-        clue: {
-          display: 'inline-block',
-          width: '33%',
-          fontSize: '3vw',
-          textAlign: 'center',
-          color: game.current,
-        },
-      }
-
       master = game.master?(user.id)
 
-      div class_name: 'game' do
+      div class_name: 'game_component' do
         render_team(game.team_a)
-
-        div style: styles[:clue] do
-          div do
-            "#{game.current} team's turn"
-          end
-
-          div style: { color: game.current } do
-            "#{game.clue} #{game.count} - Remaining #{game.remaining}" if game.clue
-          end
-        end
-
-        render_team(game.team_b, true)
-
-        div style: { textAlign: 'center' }, class_name: 'clue_giver' do
-          div style: styles[:clue_input] do
-            div { 'Clue' }
-            input(value: self.clue)
-              .on(:change) {|e| self.clue = e.target.value }
-          end
-
-          div style: styles[:clue_input] do
-            div { 'Count' }
-            input(value: self.count, list: 'counts')
-              .on(:change) {|e| self.count = e.target.value }
-          end
-
-          datalist id: 'counts' do
-            (0..9).map { |i| option value: i }
-            option value: 'Infinity'
-          end
-
-          button(value: self.clue) { "Give Clue" }.on(:click) do |e|
-            Stores::GAMES_STORE.give(self.clue, self.count)
-          end
-        end if master
-
-        button { "Pass Turn" }.on(:click) do |e|
-          Stores::GAMES_STORE.pass
-        end
-
+        present ClueComponent, game: game
+        render_team(game.team_b)
+        present GiveComponent if master
         present GridComponent, grid: game.grid, master: master
       end
     end
 
-    def render_team(team, right=false)
+    def render_team(team)
       master = params[:users][team.master].name if team.master
 
       members = team.members.map do |user_id|
@@ -93,7 +36,7 @@ module Components
         width: '33%',
       }
 
-      style[:textAlign] = 'right' if right
+      style[:textAlign] = 'right' if team == game.team_b
 
       div style: style do
         div { "Team: #{team.color}" }

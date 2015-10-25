@@ -7,6 +7,8 @@ module Components
       requires :master
     end
 
+    define_state(:hover)
+
     def word_style(word)
       color =
         case word.color
@@ -20,16 +22,17 @@ module Components
           'black'
         end
 
+      covered = word.chosen? && self.hover != word.value
+
       {
-        display: 'inline-block',
-        color: word.chosen? ? color : 'black',
+        color: covered ? color : 'black',
         margin: '0.5%',
-        border: "0.5vw solid #{params[:master] ? color : 'black'}",
-        width: '17%',
-        padding: '3%' '0%' '3%' '0%',
+        border: "0.3vw solid #{params[:master] ? color : 'black'}",
+        width: '15%',
+        padding: '2.5%' '0%' '2.5%' '0%',
         textAlign: 'center',
-        background: word.chosen? ? color : 'white',
-        fontSize: '2.5vw',
+        background: covered ? color : 'white',
+        fontSize: '2vw',
         cursor: 'pointer',
       }
     end
@@ -37,16 +40,27 @@ module Components
     def render
       return unless grid = params[:grid]
 
-      div class_name: "grid" do
+      component_style = {
+        width: '100%',
+      }
+
+      table style: component_style, class_name: "grid_component" do
         grid.map do |row|
-          div {
+          tr {
             row.map do |word|
-              div(style: word_style(word)) { word.value }
-                .on(:click) { Stores::GAMES_STORE.choose(word.value) }
+              td(style: word_style(word)) { word.value }
+                .on(:click) { on_click(word) }
+                .on(:mouse_enter) { self.hover = word.value }
+                .on(:mouse_leave) { self.hover = nil }
             end
           }
         end
       end
+    end
+
+    def on_click(word)
+       Stores::GAMES_STORE.choose(word.value)
+       self.hover = nil
     end
   end
 end

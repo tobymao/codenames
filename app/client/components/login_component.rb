@@ -11,11 +11,9 @@ module Components
         WebkitAppearance: 'none',
         MozAppearance: 'none',
         display: 'block',
-        margin: '0',
+        margin: '1vw 0 1vw 0',
         width: '50%',
-        height: '40px',
-        lineHeight: '40px',
-        fontSize: '17px',
+        height: '3vw',
         border: '1px solid #bbb',
       }
 

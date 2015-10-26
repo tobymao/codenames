@@ -6,7 +6,7 @@ module Components
     define_state(:users) { [] }
 
     define_state(:current_game)
-    define_state(:games) { [] }
+    define_state(:games_info) { [] }
 
     before_mount do
       Stores::USERS_STORE.subscribe(self, :update, :on_user_update)
@@ -19,15 +19,23 @@ module Components
     end
 
     def render
-      div class_name: 'main' do
-        if self.current_user
-          if current_game
-            present GameComponent, user: self.current_user, users: self.users, game: self.current_game
+      main_style = {
+        margin: '1vw 1vw 0 1vw',
+      }
+
+      div do
+        present NavComponent, game: self.current_game if self.current_user
+
+        div style: main_style, class: 'main' do
+          if self.current_user
+            if current_game
+              present GameComponent, user: self.current_user, users: self.users, game: self.current_game
+            else
+              present LobbyComponent, users: self.users, games_info: self.games_info
+            end
           else
-            present LobbyComponent, games: self.games
+            present LoginComponent
           end
-        else
-          present LoginComponent
         end
       end
     end
@@ -39,7 +47,7 @@ module Components
 
     def on_game_update(sender, message)
       self.current_game = Stores::GAMES_STORE.current_game
-      self.games = Stores::GAMES_STORE.games
+      self.games_info = Stores::GAMES_STORE.games_info
     end
   end
 end

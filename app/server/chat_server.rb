@@ -26,7 +26,10 @@ module Servers
     end
 
     def leave(user_id, room_id)
-      on_leave_room(user_id, room_id)
+      if room = @rooms[room_id]
+        room.delete(user_id)
+        @rooms.delete(room_id) if room.size == 0
+      end
     end
 
     def say(user_id, room_id, text)
@@ -37,16 +40,10 @@ module Servers
       end
     end
 
-    def on_leave_room(user_id, room_id)
-      room = @rooms[room_id]
-      room.delete(user_id)
-      @rooms.delete(room_id) if room.size == 0
-    end
-
     # Notifications
     def on_socket_close(pattern, user_id)
       @rooms.values.each do |room_id|
-        on_leave_room(user_id, room_id)
+        leave(user_id, room_id)
       end
     end
   end

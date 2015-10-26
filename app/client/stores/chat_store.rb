@@ -5,11 +5,10 @@ module Stores
   class ChatStore
     include Handlers::Notifier
 
-    attr_reader :main_messages, :game_messages
+    attr_reader :rooms
 
     def initialize
-      @main_messages = []
-      @game_messages = []
+      @rooms = {}
       Handlers::CONNECTION.subscribe(self, :chat, :on_update)
     end
 
@@ -19,7 +18,13 @@ module Stores
     end
 
     def join(room_id)
+      @rooms[room_id] = []
       Handlers::CONNECTION.send(:chat, :join, room_id)
+    end
+
+    def leave(room_id)
+      @rooms.delete(room_id)
+      Handlers::CONNECTION.send(:chat, :leave, room_id)
     end
 
     private
@@ -27,21 +32,14 @@ module Stores
       case message[:action]
       when :say
         on_say(message[:data])
-      when :leave
-        on_leave(message[:data])
       else
       end
     end
 
     def on_say(data)
       message = Message.from_data(data)
-
-      if message.room_id == 'main'
-        @main_messages += [message]
-      else
-        @game_messages += [message]
-      end
-
+      @rooms[message.room_id] += [message]
+      # Copy hash if you ever need to render the rooms...
       publish(self, :update, nil)
     end
   end

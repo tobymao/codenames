@@ -12,15 +12,19 @@ module Components
 
     before_mount do
       Stores::CHAT_STORE.subscribe(self, :update, :on_chat_update)
+
+      if game = params[:game]
+        Stores::CHAT_STORE.join(game.id)
+      end
     end
 
     before_unmount do
+      Stores::CHAT_STORE.leave(params[:game].id)
       Stores::CHAT_STORE.unsubscribe_all(self)
     end
 
     def render
       return unless game = params[:game]
-      Stores::CHAT_STORE.join(game.id) unless messages
 
       master = game.master?(user.id)
 
@@ -64,8 +68,7 @@ module Components
     end
 
     def on_chat_update(sender, message)
-      puts "*** CHAT UPDATE"
-      self.messages = Stores::CHAT_STORE.game_messages
+      self.messages = Stores::CHAT_STORE.rooms[params[:game].id]
     end
   end
 end

@@ -28,7 +28,7 @@ module Components
         color: covered ? color : 'black',
         margin: '0.5%',
         border: "0.3vw solid #{params[:master] ? color : 'black'}",
-        width: '15%',
+        width: '14%',
         padding: '2.5%' '0%' '2.5%' '0%',
         textAlign: 'center',
         background: covered ? color : 'white',

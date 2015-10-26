@@ -33,6 +33,7 @@ module Servers
     # Notifications
     def on_socket_close(pattern, user_id)
       @users.delete(user_id)
+      send_all(:leave, user_id)
     end
   end
 end

@@ -51,8 +51,9 @@ module Servers
 
     def send(user_id, kind, action, data)
       if socket = @user_id_socket[user_id]
-        message = { kind: kind, action: action, data: data }.to_json
-        socket << message
+        message = { kind: kind, action: action, data: data }
+        message.delete(:data) unless data
+        socket << message.to_json
       else
         error "Tried sending to #{user_id} but socket is gone"
       end
@@ -66,7 +67,6 @@ module Servers
       @socket_user_id.delete(socket)
       publish(SOCKET_CLOSE, user_id)
       socket.close
-      send_all(:user, :leave, user_id)
     end
   end
 end

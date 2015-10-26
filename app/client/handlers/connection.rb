@@ -14,8 +14,6 @@ module Handlers
 
     def on_open(e)
       puts "Websocket open"
-      send(:game, :all, nil)
-      send(:user, :all, nil)
     end
 
     def on_message(e)

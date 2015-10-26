@@ -15,7 +15,7 @@ class Team
       color: @color,
       master: @master,
       members: @members,
-    }
+    }.delete_if { |_, v| v.nil? }
   end
 
   def initialize(color:, master: nil, members: nil)

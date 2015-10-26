@@ -14,6 +14,8 @@ module Stores
 
     def login(name)
       Handlers::CONNECTION.send(:user, :login, name)
+      Handlers::CONNECTION.send(:user, :all, nil)
+      Stores::GamesStore::GAMES_STORE.all
     end
 
     private
@@ -53,7 +55,6 @@ module Stores
       @users.delete(user_id)
       update_user
       publish(self, :update, nil)
-      publish(self, :leave, user_id)
     end
 
     def update_user

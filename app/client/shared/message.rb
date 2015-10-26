@@ -14,7 +14,7 @@ class Message
       user_id: @user_id,
       room_id: @room_id,
       text: @text,
-    }
+    }.delete_if { |_, v| v.nil? }
   end
 
   def initialize(user_id:, room_id:, text:)

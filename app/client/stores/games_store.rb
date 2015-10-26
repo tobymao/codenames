@@ -5,12 +5,15 @@ module Stores
   class GamesStore
     include Handlers::Notifier
 
-    attr_reader :games, :current_game
+    attr_reader :games_info, :current_game
 
     def initialize
-      @games = []
+      @games_info = []
       Handlers::CONNECTION.subscribe(self, :game, :on_game_update)
-      UsersStore::USERS_STORE.subscribe(self, :leave, :on_leave)
+    end
+
+    def all
+      Handlers::CONNECTION.send(:game, :all, nil)
     end
 
     def new_game
@@ -45,6 +48,12 @@ module Stores
       Handlers::CONNECTION.send(:game, :pass, @current_game.id)
     end
 
+    def leave
+      Handlers::CONNECTION.send(:game, :leave, @current_game.id)
+      @current_game = nil
+      publish(self, :update, nil)
+    end
+
     private
     def on_game_update(sender, message)
       case message[:action]
@@ -67,18 +76,20 @@ module Stores
         on_give(clue, count)
       when :pass
         on_pass
+      when :leave
+        on_leave(message[:data])
       end
     end
 
-    def on_all(game_ids)
-      @games = game_ids
+    def on_all(games_info)
+      @games_info = games_info.map do |data|
+        game = GameInfo.from_data(data)
+      end
       publish(self, :update, nil)
     end
 
-    def on_new(game_id)
-      @games << game_id
-      # This is a hack to get react rerendering to work.
-      @games = @games.uniq
+    def on_new(data)
+      @games_info += [GameInfo.from_data(data)]
       publish(self, :update, nil)
     end
 
@@ -113,9 +124,11 @@ module Stores
     end
 
     # UserStore call back
-    def on_leave(sender, user_id)
-      @current_game.leave(user_id)
-      set_current_game(@current_game.to_data)
+    def on_leave(user_id)
+      if @current_game
+        @current_game.leave(user_id)
+        set_current_game(@current_game.to_data)
+      end
     end
 
     def set_current_game(data)

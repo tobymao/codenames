@@ -37,7 +37,11 @@ class Game
       clue: @clue,
       count: @count,
       remaining: @remaining,
-    }
+    }.delete_if { |_, v| v.nil? }
+  end
+
+  def to_info
+    GameInfo.new(id: @id, team_a: @team_a, team_b: @team_b)
   end
 
   def initialize(id:, first:, team_a: nil, team_b: nil, current: nil, grid: nil, clue: nil, count: nil, remaining: nil)
@@ -66,12 +70,19 @@ class Game
     end
   end
 
-  def leave(user_id, all=true)
-    @watchers.delete(user_id) if watchers
+  def leave(user_id, delete_watchers=true)
+    @watchers.delete(user_id) if delete_watchers
     @team_a.members.delete(user_id)
     @team_b.members.delete(user_id)
     @team_a.master = nil if @team_a.master == user_id
     @team_b.master = nil if @team_b.master == user_id
+  end
+
+  def empty?
+    @team_a.members.size == 0 &&
+      @team_b.members.size == 0 &&
+      !@team_a.master &&
+      !@team_b.master
   end
 
   def master?(user_id)

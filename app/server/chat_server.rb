@@ -27,7 +27,7 @@ module Servers
     end
 
     def leave(user_id, room_id)
-      ruturn unless room = @rooms[room_id]
+      return unless room = @rooms[room_id]
       room.delete(user_id)
       @rooms.delete(room_id) if room.size == 0
     end

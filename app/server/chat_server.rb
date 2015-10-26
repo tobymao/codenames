@@ -22,20 +22,20 @@ module Servers
     end
 
     def join(user_id, room_id)
-      @rooms[room_id] << user_id
+      return unless room = @rooms[room_id]
+      room << user_id
     end
 
     def leave(user_id, room_id)
-      if room = @rooms[room_id]
-        room.delete(user_id)
-        @rooms.delete(room_id) if room.size == 0
-      end
+      ruturn unless room = @rooms[room_id]
+      room.delete(user_id)
+      @rooms.delete(room_id) if room.size == 0
     end
 
     def say(user_id, room_id, text)
+      return unless users = @rooms[room_id]
       message = Message.new(user_id: user_id, room_id: room_id, text: text)
-
-      @rooms[room_id].each do |user_id|
+      users.each do |user_id|
         send(user_id, :say, message.to_data)
       end
     end

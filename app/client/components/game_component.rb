@@ -39,11 +39,11 @@ module Components
     end
 
     def render_team(team)
-      master = params[:users][team.master].name if team.master
+      master = params[:users][team.master].try(:name) if team.master
 
       members = team.members.map do |user_id|
-        params[:users][user_id].name
-      end
+        params[:users][user_id].try(:name)
+      end.compact
 
       style = {
         display: 'inline-block',

@@ -33,7 +33,7 @@ input {
 }
 
 .flash {
-  animation-duration: 2s;
+  animation-duration: 1s;
   animation-name: flash;
   animation-iteration-count: 1;
 }

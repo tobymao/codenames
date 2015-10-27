@@ -1,4 +1,5 @@
 require 'opal'
 require 'browser'
 require 'browser/socket'
+require 'browser/delay'
 require 'reactive-ruby'

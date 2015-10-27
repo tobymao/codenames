@@ -4,6 +4,11 @@ module Handlers
     API_URL = "ws://#{`window.location.hostname`}:8090/api"
 
     def initialize
+      connect
+    end
+
+    def connect
+      puts "Websocket connecting..."
       @socket = Browser::Socket.new(API_URL) do |ws|
         ws.on(:open) { |e| on_open(e) }
         ws.on(:message) { |e| on_message(e) }
@@ -14,6 +19,7 @@ module Handlers
 
     def on_open(e)
       puts "Websocket open"
+      publish(self, :open, nil)
     end
 
     def on_message(e)
@@ -24,7 +30,7 @@ module Handlers
 
     def on_close(e)
       puts "Websocket closed"
-      # TODO: do a retry
+      after(3) { connect }
     end
 
     def on_error(e)

@@ -44,7 +44,7 @@ module Components
         render_team(game.team_a)
         present ClueComponent, game: game, user: user
         render_team(game.team_b)
-        present GiveComponent if master
+        present GiveComponent if game.active_master?(user.id) && !game.clue
         present GridComponent, grid: game.grid, master: master
         div style: chat_container_style do
           present ChatComponent, room_id: game.id, messages: self.messages, user_ids: self.user_ids

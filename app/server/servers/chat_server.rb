@@ -61,7 +61,7 @@ module Servers
 
     # Notifications
     def on_socket_close(pattern, user_id)
-      @rooms.values.each do |room_id|
+      @rooms.keys.each do |room_id|
         leave(user_id, room_id)
       end
     end

@@ -11,7 +11,7 @@ module Servers
       when 'all'
         all(user_id)
       when 'new'
-        new_game(user_id)
+        new_game(user_id, message['data'])
       when 'join'
         join(user_id, message['data'])
       when 'team'
@@ -19,6 +19,8 @@ module Servers
         color = message['data']['color']
         master = message['data']['master']
         team(user_id, game_id, color, master)
+      when 'start'
+        start(user_id, message['data'])
       when 'choose'
         game_id = message['data']['game_id']
         value = message['data']['value']
@@ -38,11 +40,16 @@ module Servers
     end
 
     def all(user_id)
-      send(user_id, :all, games_info)
+      send(user_id, :all, game_list)
     end
 
-    def new_game(user_id)
-      game = Game.new(id: SecureRandom.uuid, first: Random.rand(2) == 0 ? :red : :blue)
+    def new_game(user_id, name)
+      game = Game.new(
+        id: SecureRandom.uuid,
+        first: Random.rand(2) == 0 ? :red : :blue,
+        creator: user_id,
+        name: name,
+      )
       game.watchers << user_id
       @games[game.id] = game
       send_join_game(user_id, game)
@@ -57,20 +64,34 @@ module Servers
 
     def team(user_id, game_id, color, master)
       return unless game = @games[game_id]
-      game.join_team(user_id, color, master)
+      return if game.started
+
+      game.join_team(user_id, color.to_sym, master)
       data = { user_id: user_id, color: color, master: master}
       send_game_watchers(game, :team, data, user_id)
-      send_all(:all, games_info)
+      send_all(:all, game_list)
+    end
+
+    def start(user_id, game_id)
+      return unless game = @games[game_id]
+      return unless game.creator == user_id
+      return if game.started
+      game.started = true
+      send_game_watchers(game, :start, nil, user_id)
+      send_all(:all, game_list)
     end
 
     def choose(user_id, game_id, value)
       return unless game = @games[game_id]
+      return unless game.started
+      return unless game.active_member?(user_id)
       word = game.choose_word(value)
       send_game_watchers(game, :choose, value, user_id)
     end
 
     def give(user_id, game_id, clue, count)
       return unless game = @games[game_id]
+      return unless game.active_master?(user_id)
       game.give_clue(clue, count)
       data = { clue: clue, count: count }
       send_game_watchers(game, :give, data, user_id)
@@ -78,6 +99,8 @@ module Servers
 
     def pass(user_id, game_id)
       return unless game = @games[game_id]
+      return unless game.started
+      return unless game.active_member?(user_id)
       game.pass
       send_game_watchers(game, :pass, nil, user_id)
     end
@@ -88,12 +111,12 @@ module Servers
       game.leave(user_id)
 
       if game.empty?
-        @games.delete(game_id) if game.empty?
+        @games.delete(game_id)
       else
         send_game_watchers(game, :leave, user_id, user_id)
       end
 
-      send_all(:all, games_info)
+      send_all(:all, game_list)
     end
 
     def send_game_watchers(game, kind, data, ignore_user_id=nil)
@@ -107,8 +130,10 @@ module Servers
       send(user_id, :join, game.to_data)
     end
 
-    def games_info
-      @games.map { |_, game| game.to_info.to_data }
+    def game_list
+      @games.values.delete_if(&:started).map do |game|
+        game.to_info.to_data
+      end
     end
 
     # Notifications

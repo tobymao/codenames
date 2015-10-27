@@ -4,17 +4,18 @@ module Components
 
     params do
       requires :user
-      requires :users
       requires :game
     end
 
     define_state(:messages)
+    define_state(:user_ids)
 
     before_mount do
       Stores::CHAT_STORE.subscribe(self, :update, :on_chat_update)
 
       if game = params[:game]
         Stores::CHAT_STORE.join(game.id)
+        Stores::CHAT_STORE.all(game.id)
       end
     end
 
@@ -28,21 +29,35 @@ module Components
 
       master = game.master?(user.id)
 
-      div class_name: 'game_component' do
+      component_style = {
+        height: '95%',
+        position: 'relative',
+      }
+
+      chat_container_style = {
+        width: '100%',
+        height: '20%',
+        bottom: 0,
+      }
+
+      div style: component_style, class_name: 'game_component' do
         render_team(game.team_a)
-        present ClueComponent, game: game
+        present ClueComponent, game: game, user: user
         render_team(game.team_b)
         present GiveComponent if master
         present GridComponent, grid: game.grid, master: master
-        present ChatComponent, game_id: game.id, messages: self.messages, users: users
+        div style: chat_container_style do
+          present ChatComponent, room_id: game.id, messages: self.messages, user_ids: self.user_ids
+        end
       end
     end
 
     def render_team(team)
-      master = params[:users][team.master].try(:name) if team.master
+      users = Stores::USERS_STORE.users
+      master = users[team.master].try(:name) if team.master
 
       members = team.members.map do |user_id|
-        params[:users][user_id].try(:name)
+        users[user_id].try(:name)
       end.compact
 
       style = {
@@ -68,7 +83,9 @@ module Components
     end
 
     def on_chat_update(sender, message)
-      self.messages = Stores::CHAT_STORE.rooms[params[:game].id]
+      game_id = params[:game].id
+      self.messages = Stores::CHAT_STORE.messages[game_id]
+      self.user_ids = Stores::CHAT_STORE.users[game_id]
     end
   end
 end

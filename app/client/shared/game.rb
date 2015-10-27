@@ -6,12 +6,15 @@ class Game
       JSON.parse(file)
     end if RUBY_ENGINE != 'opal'
 
-  attr_reader :id, :first, :team_a, :team_b, :current, :grid, :winner, :clue, :count, :remaining, :watchers
+  attr_reader :id, :first, :creator, :name, :team_a, :team_b, :current, :grid, :winner, :clue, :count, :remaining, :watchers
+  attr_accessor :started
 
   def self.from_data(data)
     new(
       id: data[:id],
       first: data[:first],
+      creator: data[:creator],
+      name: data[:name],
       team_a: Team.from_data(data[:team_a]),
       team_b: Team.from_data(data[:team_b]),
       current: data[:current],
@@ -22,6 +25,7 @@ class Game
       clue: data[:clue],
       count: data[:count],
       remaining: data[:remaining],
+      started: data[:started],
     )
   end
 
@@ -29,6 +33,8 @@ class Game
     {
       id: @id,
       first: @first,
+      creator: @creator,
+      name: @name,
       team_a: @team_a.to_data,
       team_b: @team_b.to_data,
       current: @current,
@@ -37,22 +43,27 @@ class Game
       clue: @clue,
       count: @count,
       remaining: @remaining,
+      started: @started,
     }.delete_if { |_, v| v.nil? }
   end
 
   def to_info
-    GameInfo.new(id: @id, team_a: @team_a, team_b: @team_b)
+    GameInfo.new(id: @id, team_a: @team_a, team_b: @team_b, creator: @creator, name: @name)
   end
 
-  def initialize(id:, first:, team_a: nil, team_b: nil, current: nil, grid: nil, clue: nil, count: nil, remaining: nil)
+  def initialize(id:, first:, creator:, name:, team_a: nil, team_b: nil, current: nil, grid: nil, winner: nil, clue: nil, count: nil, remaining: nil, started: nil)
     @watchers = []
 
     @id = id
     @first = first
     @clue = clue
     @count = count
+    @creator = creator
+    @name = name
+    @winner = winner
 
     @remaining = remaining || 0
+    @started = started || false
     @team_a = team_a || Team.new(color: first)
     @team_b = team_b || Team.new(color: first == :red ? :blue : :red)
     @current = current || @first
@@ -60,14 +71,19 @@ class Game
   end
 
   def join_team(user_id, color, master)
+    return false if @started
+
     leave(user_id, false)
     team = team_for_color(color)
 
     if master
+      return false if team.master
       team.master = user_id
     else
       team.members << user_id
     end
+
+    true
   end
 
   def leave(user_id, delete_watchers=true)
@@ -78,22 +94,9 @@ class Game
     @team_b.master = nil if @team_b.master == user_id
   end
 
-  def empty?
-    @team_a.members.size == 0 &&
-      @team_b.members.size == 0 &&
-      !@team_a.master &&
-      !@team_b.master
-  end
-
-  def master?(user_id)
-    @team_a.master == user_id || @team_b.master == user_id
-  end
-
-  def team_for_color(color)
-    color == @team_a.color.to_s ?  @team_a : @team_b
-  end
-
   def give_clue(clue, count)
+    return false unless @started
+
     @clue = clue
     @count = count
     @remaining =
@@ -102,20 +105,24 @@ class Game
       else
         [count.to_i + 1, left(@current)].min
       end
+
+    true
   end
 
   def pass
+    return false unless @started
+
     @current = other
     @count = nil
     @clue = nil
     @remaining = 0
-  end
 
-  def end_game(winner)
-    @winner = winner
+    true
   end
 
   def choose_word(value)
+    return false unless @started
+
     words = @grid.flatten
     word = words.find { |w| w.value == value }
     return false if word.chosen?
@@ -123,15 +130,40 @@ class Game
     word.choose
     @remaining -= 1
 
+    end_game(other) if word.assasin?
+
     if !word.color?(@current) || @remaining <= 0
       pass
     end
 
-    end_game(other) if word.assasin?
     end_game(:red) if words.select(&:red?).all?(&:chosen?)
     end_game(:blue) if words.select(&:blue?).all?(&:chosen?)
 
     true
+  end
+
+  def empty?
+    @team_a.members.size == 0 &&
+      @team_b.members.size == 0 &&
+      !@team_a.master &&
+      !@team_b.master &&
+      !@watchers.include?(@creator)
+  end
+
+  def master?(user_id)
+    @team_a.master == user_id || @team_b.master == user_id
+  end
+
+  def team_for_color(color)
+    color == @team_a.color ?  @team_a : @team_b
+  end
+
+  def active_member?(user_id)
+    team_for_color(@current).members.include?(user_id)
+  end
+
+  def active_master?(user_id)
+    team_for_color(@current).master == user_id
   end
 
   private
@@ -144,13 +176,12 @@ class Game
   end
 
   def setup_grid
-    first = @first
-    second = first == :red ? :blue : :red
+    second = @first == :red ? :blue : :red
 
     pool = [:assasin]
     7.times { pool << :neutral }
     8.times { pool << second }
-    9.times { pool << first }
+    9.times { pool << @first }
 
     matrix = [[], [], [] ,[] ,[]]
 
@@ -160,5 +191,9 @@ class Game
     end
 
     matrix
+  end
+
+  def end_game(winner)
+    @winner = winner
   end
 end

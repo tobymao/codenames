@@ -10,24 +10,28 @@ module Components
         textAlign: 'center',
       }
 
-      input_style = {
+      input_container_style = {
         display: 'inline-block',
-        margin: '0',
+        margin: '1vw',
         width: '15%',
         fontSize: '2vw',
         textAlign: 'center',
       }
 
+      input_style = {
+        width: '100%',
+      }
+
       div style: component_style, class_name: 'give_component' do
-        div style: input_style do
+        div style: input_container_style do
           div { 'Clue' }
-          input(value: self.clue)
+          input(style: input_style, value: self.clue)
             .on(:change) {|e| self.clue = e.target.value }
         end
 
-        div style: input_style do
+        div style: input_container_style do
           div { 'Count' }
-          input(value: self.count, list: 'counts')
+          input(style: input_style, value: self.count, list: 'counts')
             .on(:change) {|e| self.count = e.target.value }
         end
 

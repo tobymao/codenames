@@ -1,6 +1,6 @@
 class Team
-  attr_reader :color
-  attr_accessor :master, :members
+  attr_reader :color, :members
+  attr_accessor :master
 
   def self.from_data(data)
     new(

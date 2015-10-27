@@ -3,10 +3,8 @@ module Components
     include React::Component
 
     define_state(:current_user)
-    define_state(:users) { [] }
-
     define_state(:current_game)
-    define_state(:games_info) { [] }
+    define_state(:game_list) { [] }
 
     before_mount do
       Stores::USERS_STORE.subscribe(self, :update, :on_user_update)
@@ -29,9 +27,9 @@ module Components
         div style: main_style, class: 'main' do
           if self.current_user
             if current_game
-              present GameComponent, user: self.current_user, users: self.users, game: self.current_game
+              present GameComponent, user: self.current_user, game: self.current_game
             else
-              present LobbyComponent, users: self.users, games_info: self.games_info
+              present LobbyComponent, game_list: self.game_list
             end
           else
             present LoginComponent
@@ -42,12 +40,11 @@ module Components
 
     def on_user_update(sender, message)
       self.current_user = Stores::USERS_STORE.current_user
-      self.users = Stores::USERS_STORE.users
     end
 
     def on_game_update(sender, message)
       self.current_game = Stores::GAMES_STORE.current_game
-      self.games_info = Stores::GAMES_STORE.games_info
+      self.game_list = Stores::GAMES_STORE.game_list
     end
   end
 end

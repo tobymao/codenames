@@ -8,6 +8,8 @@ module Servers
 
     def handle(user_id, message)
       case message['action']
+      when 'all'
+        all(user_id, message['data'])
       when 'join'
         join(user_id, message['data'])
       when 'leave'
@@ -21,15 +23,28 @@ module Servers
       end
     end
 
+    def all(user_id, room_id)
+      return unless room = @rooms[room_id]
+      data = { room_id: room_id, user_ids: room }
+      send(user_id, :all, data)
+    end
+
     def join(user_id, room_id)
       return unless room = @rooms[room_id]
+      data = { room_id: room_id, user_id: user_id }
+      send_room(room, :join, data)
       room << user_id
     end
 
     def leave(user_id, room_id)
       return unless room = @rooms[room_id]
       room.delete(user_id)
-      @rooms.delete(room_id) if room.size == 0
+      if room.size == 0
+        @rooms.delete(room_id)
+      else
+        data = { room_id: room_id, user_id: user_id }
+        send_room(room, :leave, data)
+      end
     end
 
     def say(user_id, room_id, text)
@@ -38,6 +53,10 @@ module Servers
       users.each do |user_id|
         send(user_id, :say, message.to_data)
       end
+    end
+
+    def send_room(room, action, data)
+      room.each { |user_id| send(user_id, action, data) }
     end
 
     # Notifications

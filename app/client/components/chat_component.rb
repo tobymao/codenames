@@ -4,8 +4,8 @@ module Components
 
     params do
       requires :messages
-      requires :game_id
-      requires :users
+      requires :room_id
+      requires :user_ids
     end
 
     define_state(:text)
@@ -18,17 +18,27 @@ module Components
     end
 
     def render
-      messages = params[:messages]
+      messages = params[:messages] || []
+      user_ids = params[:user_ids] || []
+      users = Stores::USERS_STORE.users
 
       component_style = {
-        width: '100%',
-        height: '15%',
         position: 'relative',
+        height: '100%',
       }
 
-      container_style = {
+      messages_style = {
+        float: 'left',
         overflowY: 'auto',
-        height: '70%',
+        height: '80%',
+        width: '80%',
+      }
+
+      users_style = {
+        float: 'right',
+        overflowY: 'auto',
+        height: '80%',
+        width: '20%',
       }
 
       name_style = {
@@ -42,20 +52,26 @@ module Components
 
       input_style = {
         width: '100%',
-        position: 'absolute',
         bottom: 0,
       }
 
       div style: component_style, class_name: 'chat_component' do
-        div(style: container_style, ref: :messages) do
+        div(style: messages_style, ref: :messages) do
           messages.map do |message|
-            user = params[:users][message.user_id]
+            user = users[message.user_id]
 
             div do
               div(style: name_style) { "#{user.name}:" }
               div(style: message_style) { message.text}
             end
           end if messages
+        end
+
+        div(style: users_style) do
+          user_ids.map do |user_id|
+            user = users[user_id]
+            div { "#{user.name}" }
+          end
         end
 
         input(style: input_style, value: self.text)
@@ -65,7 +81,7 @@ module Components
     end
 
     def submit
-      Stores::CHAT_STORE.say(params[:game_id], self.text)
+      Stores::CHAT_STORE.say(params[:room_id], self.text)
       self.text = nil
     end
   end

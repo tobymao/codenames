@@ -64,8 +64,7 @@ module Stores
     end
 
     def on_leave(user_id, room_id)
-      @users[room_id].delete(user_id)
-      @users[room_id] += []
+      @users[room_id] -= [user_id]
       publish(self, :update, nil)
     end
 

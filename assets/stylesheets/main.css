@@ -25,3 +25,15 @@ button:hover {
 input {
   font-size: 2vw;
 }
+
+@keyframes flash {
+  0% { background: rgba(255,0,0,0); }
+  50% { background: rgba(255,0,0,1); }
+  100% { background: rgba(255,0,0,0); }
+}
+
+.flash {
+  animation-duration: 2s;
+  animation-name: flash;
+  animation-iteration-count: 1;
+}

@@ -125,6 +125,7 @@ module Stores
     def on_give(clue, count)
       return false unless @current_game.give_clue(clue, count)
       set_current_game(@current_game.to_data)
+      flash_screen
       true
     end
 
@@ -151,6 +152,16 @@ module Stores
       game = Game.from_data(data)
       @current_game = game
       publish(self, :update, nil)
+    end
+
+    def flash_screen
+      %x{
+        var el = document.getElementById('content');
+        el.classList.add('flash');
+        setTimeout(function() {
+          el.classList.remove('flash');
+        }, 1000);
+      }
     end
 
     private

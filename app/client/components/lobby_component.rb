@@ -61,7 +61,7 @@ module Components
 
     def render_team(team)
       users = Stores::USERS_STORE.users
-      master = users[team.master].name if team.master
+      master = users[team.master].try(:name) if team.master
 
       members = team.members.map do |user_id|
         users[user_id].try(:name)

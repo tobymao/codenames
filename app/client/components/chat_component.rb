@@ -61,7 +61,7 @@ module Components
             user = users[message.user_id]
 
             div do
-              div(style: name_style) { "#{user.name}:" }
+              div(style: name_style) { "#{user.try(:name)}:" }
               div(style: message_style) { message.text}
             end
           end if messages
@@ -69,8 +69,7 @@ module Components
 
         div(style: users_style) do
           user_ids.map do |user_id|
-            user = users[user_id]
-            div { "#{user.name}" }
+            div { "#{users[user_id].try(:name)}" }
           end
         end
 

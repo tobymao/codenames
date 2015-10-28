@@ -166,6 +166,10 @@ class Game
     team_for_color(@current).master == user_id
   end
 
+  def solo_master?(user_id)
+    master?(user_id) && !(@team_a.master && @team_b.master)
+  end
+
   private
   def other
     @current == :red ? :blue : :red

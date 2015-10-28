@@ -36,7 +36,7 @@ module Stores
     end
 
     def choose(value)
-      return unless active_member?
+      return if !active_member? && !solo_master?
       return unless on_choose(value)
       data = { game_id: @current_game.id, value: value }
       Handlers::CONNECTION.send(:game, :choose, data)
@@ -51,7 +51,7 @@ module Stores
     end
 
     def pass
-      return unless active_member?
+      return if !active_member? && !solo_master?
       return unless on_pass
       Handlers::CONNECTION.send(:game, :pass, @current_game.id)
     end
@@ -167,6 +167,10 @@ module Stores
     private
     def active_member?
       @current_game.active_member?(UsersStore::USERS_STORE.current_user.id)
+    end
+
+    def solo_master?
+      @current_game.solo_master?(UsersStore::USERS_STORE.current_user.id)
     end
 
     def active_master?

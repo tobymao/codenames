@@ -84,7 +84,7 @@ module Servers
     def choose(user_id, game_id, value)
       return unless game = @games[game_id]
       return unless game.started
-      return unless game.active_member?(user_id)
+      return if !game.active_member?(user_id) && !game.solo_master?(user_id)
       word = game.choose_word(value)
       send_game_watchers(game, :choose, value, user_id)
     end
@@ -100,7 +100,7 @@ module Servers
     def pass(user_id, game_id)
       return unless game = @games[game_id]
       return unless game.started
-      return unless game.active_member?(user_id)
+      return if !game.active_member?(user_id) && !game.solo_master?(user_id)
       game.pass
       send_game_watchers(game, :pass, nil, user_id)
     end

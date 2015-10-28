@@ -18,6 +18,12 @@ module Stores
       Stores::GamesStore::GAMES_STORE.all
     end
 
+    def reset
+      @current_user = nil
+      @users = {}
+      publish(self, :update, nil)
+    end
+
     private
     def on_update(sender, message)
       case message[:action]

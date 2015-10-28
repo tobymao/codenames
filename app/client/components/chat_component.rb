@@ -61,7 +61,7 @@ module Components
             user = users[message.user_id]
 
             div do
-              div(style: name_style) { "#{user.try(:name)}:" }
+              div(style: name_style) { "#{message.user_name}:" }
               div(style: message_style) { message.text}
             end
           end if messages

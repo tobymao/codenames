@@ -4,6 +4,7 @@ module Components
 
     params do
       requires :game
+      requires :status
     end
 
     def render
@@ -23,7 +24,8 @@ module Components
           div(style: link_style) { '< Leave Game' }
             .on(:click) { Stores::GAMES_STORE.leave }
         end
-        div(style: link_style) { 'About' }
+
+        div { "Status: #{status}" }
       end
     end
   end

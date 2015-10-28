@@ -70,6 +70,7 @@ module Stores
 
     def on_say(data)
       message = Message.from_data(data)
+      message.user_name = UsersStore::USERS_STORE.users[message.user_id].name
       @messages[message.room_id] += [message]
       # Copy hash if you ever need to render the rooms...
       publish(self, :update, nil)

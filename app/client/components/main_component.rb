@@ -5,10 +5,12 @@ module Components
     define_state(:current_user)
     define_state(:current_game)
     define_state(:game_list) { [] }
+    define_state(:status)
 
     before_mount do
       Stores::USERS_STORE.subscribe(self, :update, :on_user_update)
       Stores::GAMES_STORE.subscribe(self, :update, :on_game_update)
+      Handlers::CONNECTION.subscribe(self, :update, :on_connection_update)
     end
 
     before_unmount do
@@ -22,7 +24,7 @@ module Components
       }
 
       div do
-        present NavComponent, game: self.current_game if self.current_user
+        present NavComponent, game: self.current_game, status: self.status
 
         div style: main_style, class: 'main' do
           if self.current_user
@@ -45,6 +47,10 @@ module Components
     def on_game_update(sender, message)
       self.current_game = Stores::GAMES_STORE.current_game
       self.game_list = Stores::GAMES_STORE.game_list
+    end
+
+    def on_connection_update(sender, message)
+      self.status = message
     end
   end
 end

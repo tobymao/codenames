@@ -19,7 +19,7 @@ module Handlers
 
     def on_open(e)
       puts "Websocket open"
-      publish(self, :open, nil)
+      publish(self, :update, "Connected To Server")
     end
 
     def on_message(e)
@@ -30,15 +30,19 @@ module Handlers
 
     def on_close(e)
       puts "Websocket closed"
+      publish(self, :update, "Not Connected... Retrying")
+      Stores::USERS_STORE.reset
       after(3) { connect }
     end
 
     def on_error(e)
       puts "Websocket error"
+      publish(self, :update, "Not Connected... Error")
       @socket.close
     end
 
     def send(kind, action, data)
+      return unless @socket.state == 'open'
       message = { kind: kind, action: action, data: data }
         .delete_if { |_, v| v.nil? }
         .to_json

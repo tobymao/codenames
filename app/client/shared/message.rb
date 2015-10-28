@@ -1,5 +1,6 @@
 class Message
   attr_reader :user_id, :room_id, :text
+  attr_accessor :user_name
 
   def self.from_data(data)
     new(

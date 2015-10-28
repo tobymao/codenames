@@ -4,7 +4,7 @@ module Views
       html do
         head do
           title "Codenames"
-          meta name: 'viewport', content: 'width=device-width', 'initial-scale' => 1, 'maximum-scale' => 1
+          meta name: 'viewport', content: 'width=device-width', 'initial-scale' => 1, 'maximum-scale' => 1, 'user-scalable' => 0
           link rel: 'stylesheet', type: 'text/css', href: 'build/main.css'
           script src: 'build/lib.js'
           script src: 'build/app.js'

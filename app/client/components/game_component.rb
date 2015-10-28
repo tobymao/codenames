@@ -27,7 +27,7 @@ module Components
     def render
       return unless game = params[:game]
 
-      master = game.master?(user.id)
+      is_master = game.master?(user.id)
 
       component_style = {
         height: '95%',
@@ -45,7 +45,7 @@ module Components
         present ClueComponent, game: game, user: user
         render_team(game.team_b)
         present GiveComponent if game.active_master?(user.id) && !game.clue
-        present GridComponent, grid: game.grid, master: master
+        present GridComponent, grid: game.grid, is_master: is_master
         div style: chat_container_style do
           present ChatComponent, room_id: game.id, messages: self.messages, user_ids: self.user_ids
         end
@@ -55,6 +55,7 @@ module Components
     def render_team(team)
       users = Stores::USERS_STORE.users
       master = users[team.master].try(:name) if team.master
+      game = params[:game]
 
       members = team.members.map do |user_id|
         users[user_id].try(:name)
@@ -74,11 +75,11 @@ module Components
         div { "Spy Master: #{master}" }
         button { "Be #{team.color} spy master" }.on(:click) do
           Stores::GAMES_STORE.team(team.color, true)
-        end
+        end if !master && !game.started
         div { "Members: #{members}" }
         button { "Join #{team.color}" }.on(:click) do
           Stores::GAMES_STORE.team(team.color, false)
-        end
+        end unless game.started
       end
     end
 

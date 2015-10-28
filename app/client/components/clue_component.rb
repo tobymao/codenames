@@ -21,6 +21,8 @@ module Components
         fontSize: '2vw',
       }
 
+      user = params[:user]
+
       div class: 'clue_component', style: component_style do
         div do
           "#{game.winner} team wins!"
@@ -37,9 +39,11 @@ module Components
           end
         end if game.clue
 
-        button { "Pass Turn" }.on(:click) { |e| Stores::GAMES_STORE.pass }
+        if game.started && game.active_member?(user.id)
+          button { "Pass Turn" }.on(:click) { |e| Stores::GAMES_STORE.pass }
+        end
 
-        if !game.started && game.creator == params[:user].id
+        if !game.started && game.creator == user.id
           button { "Start Game" }.on(:click) { |e| Stores::GAMES_STORE.start }
         end
       end

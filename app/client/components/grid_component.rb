@@ -4,7 +4,7 @@ module Components
 
     params do
       requires :grid
-      requires :master
+      requires :is_master
     end
 
     define_state(:hover)
@@ -27,7 +27,7 @@ module Components
       {
         color: covered ? color : 'black',
         margin: '0.5%',
-        border: "0.3vw solid #{params[:master] ? color : 'black'}",
+        border: "0.3vw solid #{params[:is_master] ? color : 'black'}",
         width: '14%',
         padding: '2.5%' '0%' '2.5%' '0%',
         textAlign: 'center',

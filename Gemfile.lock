@@ -53,7 +53,7 @@ GEM
     listen (3.0.3)
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9)
-    minitest (5.8.1)
+    minitest (5.8.2)
     nio4r (1.1.1)
     opal (0.8.1)
       hike (~> 1.2)
@@ -70,7 +70,7 @@ GEM
     rb-fsevent (0.9.6)
     rb-inotify (0.9.5)
       ffi (>= 0.5.0)
-    reactive-ruby (0.7.26)
+    reactive-ruby (0.7.28)
       opal
       opal-activesupport (>= 0.2.0)
       opal-browser
@@ -81,7 +81,7 @@ GEM
       http_parser.rb (>= 0.6.0)
       websocket_parser (>= 0.1.6)
     ref (2.0.0)
-    require_all (1.3.2)
+    require_all (1.3.3)
     rerun (0.11.0)
       listen (~> 3.0)
     rspec (3.3.0)

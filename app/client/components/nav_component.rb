@@ -25,7 +25,7 @@ module Components
             .on(:click) { Stores::GAMES_STORE.leave }
         end
 
-        div { "Status: #{status}" }
+        div(style: link_style) { "Status: #{status}" }
       end
     end
   end

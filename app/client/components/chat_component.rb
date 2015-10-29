@@ -11,6 +11,14 @@ module Components
     define_state(:text)
 
     after_update do
+      scroll_bottom
+    end
+
+    after_mount do
+      scroll_bottom
+    end
+
+    def scroll_bottom
       %x{
         var node = #{@native}.refs.messages.getDOMNode();
         node.scrollTop = node.scrollHeight;
@@ -61,8 +69,8 @@ module Components
             user = users[message.user_id]
 
             div do
-              div(style: name_style) { "#{message.user_name}:" }
-              div(style: message_style) { message.text}
+              div(style: name_style) { "#{message.user_name}:" } if message.user_name
+              div(style: message_style) { message.text }
             end
           end if messages
         end
@@ -80,6 +88,7 @@ module Components
     end
 
     def submit
+      return if self.text.size == 0
       Stores::CHAT_STORE.say(params[:room_id], self.text)
       self.text = nil
     end

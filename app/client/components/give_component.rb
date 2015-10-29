@@ -12,8 +12,8 @@ module Components
 
       input_container_style = {
         display: 'inline-block',
-        margin: '1vw',
-        width: '15%',
+        width: '30%',
+        marginRight: '0.5vw',
         fontSize: '2vw',
         textAlign: 'center',
       }

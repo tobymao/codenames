@@ -26,14 +26,26 @@ input {
   font-size: 2vw;
 }
 
-@keyframes flash {
+@keyframes red_flash {
   0% { background: rgba(255,0,0,0); }
   50% { background: rgba(255,0,0,1); }
   100% { background: rgba(255,0,0,0); }
 }
 
-.flash {
+@keyframes blue_flash {
+  0% { background: rgba(0,0,255,0); }
+  50% { background: rgba(0,0,255,1); }
+  100% { background: rgba(0,0,255,0); }
+}
+
+.red_flash {
   animation-duration: 1s;
-  animation-name: flash;
+  animation-name: red_flash;
+  animation-iteration-count: 1;
+}
+
+.blue_flash {
+  animation-duration: 1s;
+  animation-name: blue_flash;
   animation-iteration-count: 1;
 }

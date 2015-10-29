@@ -4,6 +4,7 @@ require 'handlers/connection'
 module Stores
   class ChatStore
     include Handlers::Notifier
+    include Handlers::Title
 
     attr_reader :users, :messages
 
@@ -30,6 +31,11 @@ module Stores
       @users.delete(room_id)
       @messages.delete(room_id)
       Handlers::CONNECTION.send(:chat, :leave, room_id)
+    end
+
+    def system_message(room_id, message)
+      message = Message.new(user_id: nil, room_id: room_id, text: message)
+      update_messages(message)
     end
 
     private
@@ -71,8 +77,12 @@ module Stores
     def on_say(data)
       message = Message.from_data(data)
       message.user_name = UsersStore::USERS_STORE.users[message.user_id].name
+      update_messages(message)
+      set_title("#{message.user_name} said...") if message.room_id != 'main'
+    end
+
+    def update_messages(message)
       @messages[message.room_id] += [message]
-      # Copy hash if you ever need to render the rooms...
       publish(self, :update, nil)
     end
   end

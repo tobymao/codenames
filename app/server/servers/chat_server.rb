@@ -50,8 +50,8 @@ module Servers
     def say(user_id, room_id, text)
       return unless users = @rooms[room_id]
       message = Message.new(user_id: user_id, room_id: room_id, text: text)
-      users.each do |user_id|
-        send(user_id, :say, message.to_data)
+      users.each do |id|
+        send(id, :say, message.to_data)
       end
     end
 

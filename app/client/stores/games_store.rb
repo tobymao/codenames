@@ -4,6 +4,7 @@ require 'handlers/connection'
 module Stores
   class GamesStore
     include Handlers::Notifier
+    include Handlers::Title
 
     attr_reader :game_list, :current_game
 
@@ -114,18 +115,28 @@ module Stores
     def on_start
       @current_game.started = true
       set_current_game(@current_game.to_data)
+      set_title('Game Starting')
     end
 
     def on_choose(value)
+      color = @current_game.current
       return false unless @current_game.choose_word(value)
+      system_message("#{color} team chose #{value}")
       set_current_game(@current_game.to_data)
+      set_title("Give a Clue!") if active_master?
       true
     end
 
     def on_give(clue, count)
       return false unless @current_game.give_clue(clue, count)
+      system_message("#{@current_game.current} gave clue - #{clue} #{count}")
       set_current_game(@current_game.to_data)
-      flash_screen
+
+      if active_member?
+        flash_screen
+        set_title("Make a Guess!")
+      end
+
       true
     end
 
@@ -138,7 +149,9 @@ module Stores
 
     def on_pass
       return false unless @current_game.pass
+      system_message("#{@current_game.other} passed.")
       set_current_game(@current_game.to_data)
+      set_title("Give a Clue!") if active_master?
       true
     end
 
@@ -155,16 +168,22 @@ module Stores
     end
 
     def flash_screen
+      animation = @current_game.current == :red ? 'red_flash' : 'blue_flash'
+
       %x{
-        var el = document.getElementById('content');
-        el.classList.add('flash');
+        var el = document.getElementsByClassName('clue_component')[0]
+        el.classList.add(#{animation});
         setTimeout(function() {
-          el.classList.remove('flash');
+          el.classList.remove(#{animation});
         }, 1000);
       }
     end
 
     private
+    def system_message(message)
+      ChatStore::CHAT_STORE.system_message(@current_game.id, message)
+    end
+
     def active_member?
       @current_game.active_member?(UsersStore::USERS_STORE.current_user.id)
     end

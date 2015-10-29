@@ -170,11 +170,11 @@ class Game
     master?(user_id) && !(@team_a.master && @team_b.master)
   end
 
-  private
   def other
     @current == :red ? :blue : :red
   end
 
+  private
   def left(color)
     @grid.flatten.select { |w| w.color?(color) && !w.chosen }.size
   end

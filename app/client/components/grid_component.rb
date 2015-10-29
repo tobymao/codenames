@@ -32,7 +32,7 @@ module Components
         padding: '2.5%' '0%' '2.5%' '0%',
         textAlign: 'center',
         background: covered ? color : 'white',
-        fontSize: '2vw',
+        fontSize: '1.5vw',
         cursor: 'pointer',
       }
     end

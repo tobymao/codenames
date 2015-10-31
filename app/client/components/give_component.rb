@@ -27,12 +27,14 @@ module Components
           div { 'Clue' }
           input(style: input_style, value: self.clue)
             .on(:change) {|e| self.clue = e.target.value }
+            .on(:key_down) { |e| submit if (e.key_code == 13) }
         end
 
         div style: input_container_style do
           div { 'Count' }
           input(style: input_style, value: self.count, list: 'counts')
             .on(:change) {|e| self.count = e.target.value }
+            .on(:key_down) { |e| submit if (e.key_code == 13) }
         end
 
         datalist id: 'counts' do
@@ -41,9 +43,14 @@ module Components
         end
 
         button(value: self.clue) { "Give Clue" }.on(:click) do |e|
-          Stores::GAMES_STORE.give(self.clue, self.count)
+          submit
         end
       end
+    end
+
+    def submit
+      return if !self.clue || !self.count
+      Stores::GAMES_STORE.give(self.clue, self.count)
     end
   end
 end

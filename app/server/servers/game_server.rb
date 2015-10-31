@@ -57,7 +57,7 @@ module Servers
     end
 
     def join(user_id, game_id)
-      game = @games[game_id]
+      return unless game = @games[game_id]
       game.watchers << user_id
       send_join_game(user_id, game)
     end
@@ -65,7 +65,6 @@ module Servers
     def team(user_id, game_id, color, master)
       return unless game = @games[game_id]
       return if game.started
-
       game.join_team(user_id, color.to_sym, master)
       data = { user_id: user_id, color: color, master: master}
       send_game_watchers(game, :team, data, user_id)

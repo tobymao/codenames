@@ -49,7 +49,7 @@ module Components
     end
 
     def submit
-      return if !self.clue || !self.count
+      return if self.clue.to_s == '' || self.count.to_s == ''
       Stores::GAMES_STORE.give(self.clue, self.count)
     end
   end

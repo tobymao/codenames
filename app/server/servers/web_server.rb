@@ -15,12 +15,12 @@ module Servers
           # Pass off control to socket server.
           connection.detach
           route_socket(request.websocket)
-          return
         else
           Routers::HTTPRouter.route(connection, request)
         end
 
         info "Request #{request.url} finished in #{Time.now - time}"
+        return
       end
     end
 

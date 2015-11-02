@@ -30,9 +30,7 @@ module Handlers
 
     def on_close(e)
       puts "Websocket closed"
-      publish(self, :update, "Not Connected... Retrying")
       Stores::USERS_STORE.reset
-      after(3) { connect }
     end
 
     def on_error(e)

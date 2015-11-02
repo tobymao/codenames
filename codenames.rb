@@ -15,10 +15,10 @@ LIB_INCLUDE = 'app/client/include.rb'
 CSS_SOURCE = 'assets/stylesheets/main.css'
 
 
-LIB_BUILD_PATH = 'build/lib.js'
-APP_BUILD_PATH = 'build/app.js'
-CSS_BUILD_PATH = 'build/main.css'
-SOURCE_MAP_PATH = 'build/app.js.map'
+LIB_BUILD_PATH = 'build/public/lib.js'
+APP_BUILD_PATH = 'build/public/app.js'
+CSS_BUILD_PATH = 'build/public/main.css'
+SOURCE_MAP_PATH = 'build/public/app.js.map'
 
 def build_lib(uglify)
   time = Time.now

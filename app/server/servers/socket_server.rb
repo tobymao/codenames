@@ -9,7 +9,6 @@ module Servers
 
     def initialize
       @user_id_socket = {}
-      @socket_user_id = {}
     end
 
     def connect(socket)
@@ -17,7 +16,6 @@ module Servers
       info "User connected #{user_id}"
       async.listen(user_id, socket)
       @user_id_socket[user_id] = socket
-      @socket_user_id[socket] = user_id
     end
 
     def listen(user_id, socket)
@@ -45,7 +43,7 @@ module Servers
     end
 
     def send_all(kind, action, data)
-      @socket_user_id.values.each do |user_id|
+      @user_id_socket.keys.each do |user_id|
         send(user_id, kind, action, data)
       end
     end
@@ -65,7 +63,6 @@ module Servers
 
     def close(user_id, socket)
       @user_id_socket.delete(user_id)
-      @socket_user_id.delete(socket)
       publish(SOCKET_CLOSE, user_id)
       socket.close
     end

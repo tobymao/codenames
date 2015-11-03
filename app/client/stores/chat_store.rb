@@ -6,6 +6,8 @@ module Stores
     include Handlers::Notifier
     include Handlers::Title
 
+    CHAT_HISTORY_LENGTH = 200
+
     attr_reader :users, :messages
 
     def initialize
@@ -82,7 +84,8 @@ module Stores
     end
 
     def update_messages(message)
-      @messages[message.room_id] += [message]
+      messages = @messages[message.room_id].last(CHAT_HISTORY_LENGTH)
+      @messages[message.room_id] = messages << message
       publish(self, :update, nil)
     end
   end

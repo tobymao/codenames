@@ -60,7 +60,7 @@ module Servers
       end
     rescue
       info "Could not send message. #{user_id} disconnected"
-      close(user_id, message)
+      close(user_id, socket)
     end
 
     def close(user_id, socket)

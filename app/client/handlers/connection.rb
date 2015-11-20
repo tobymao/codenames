@@ -17,8 +17,17 @@ module Handlers
       end
     end
 
+    def ping
+      after(60) do
+        send(:ping, nil, nil)
+        ping if @connected
+      end
+    end
+
     def on_open(e)
       puts "Websocket open"
+      @connected = true
+      ping
       publish(self, :update, "Connected To Server")
     end
 
@@ -30,6 +39,7 @@ module Handlers
 
     def on_close(e)
       puts "Websocket closed"
+      @connected = false
       Stores::USERS_STORE.reset
     end
 

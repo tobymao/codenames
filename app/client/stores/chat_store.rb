@@ -6,7 +6,7 @@ module Stores
     include Handlers::Notifier
     include Handlers::Title
 
-    CHAT_HISTORY_LENGTH = 200
+    CHAT_HISTORY_LENGTH = 50
 
     attr_reader :users, :messages
 

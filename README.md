@@ -6,5 +6,3 @@
 3. npm install uglify-js -g
 4. ./start.sh
 5. go to http://localhost:8090/
-
-This project is heavily in development.
